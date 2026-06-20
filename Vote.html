@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--amber:#FFC857;--red:#E84855;--bg:#F4F6FA;--muted:#6B7689;}
+  *{box-sizing:border-box;}
+  body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;margin:0;background:var(--bg);color:var(--navy);-webkit-tap-highlight-color:transparent;}
+  .wrap{max-width:520px;margin:0 auto;padding:20px 16px 48px;}
+  .badge{display:inline-block;background:var(--coral);color:#fff;font-size:12px;font-weight:bold;padding:5px 12px;border-radius:20px;letter-spacing:1px;}
+  .pno{color:var(--muted);font-size:13px;margin-top:16px;}
+  .qcard{background:#fff;border-radius:16px;padding:18px;margin:8px 0 18px;box-shadow:0 4px 14px rgba(27,42,74,.08);min-height:70px;display:flex;align-items:center;}
+  .qcard p{font-size:19px;font-weight:bold;line-height:1.5;margin:0;}
+  .qcard.wait{color:var(--muted);font-weight:normal;font-size:15px;}
+  .btns{display:flex;flex-direction:column;gap:12px;margin:18px 0;}
+  .vbtn{border:none;border-radius:16px;padding:20px;font-size:18px;font-weight:bold;color:#fff;cursor:pointer;display:flex;align-items:center;gap:14px;}
+  .dot{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.95);flex:none;}
+  .green{background:var(--green);} .amber{background:var(--amber);color:#5a4a14;} .red{background:var(--red);}
+  .amber .dot{background:rgba(90,74,20,.85);}
+  .vbtn:active{transform:scale(.98);}
+  .done{text-align:center;background:#fff;border-radius:16px;padding:24px;font-weight:bold;color:var(--green);box-shadow:0 4px 14px rgba(27,42,74,.08);}
+  .closed{text-align:center;color:var(--muted);background:#fff;border-radius:16px;padding:22px;}
+  .op{background:#fff;border-radius:16px;padding:18px;margin-top:26px;box-shadow:0 4px 14px rgba(27,42,74,.08);}
+  .op h3{margin:0 0 4px;font-size:16px;}
+  .op p{margin:0 0 10px;color:var(--muted);font-size:13px;}
+  textarea{width:100%;border:1.5px solid #D7DEE8;border-radius:12px;padding:12px;font-size:15px;font-family:inherit;resize:vertical;min-height:80px;}
+  .cat{display:flex;gap:8px;margin:10px 0;}
+  .cat label{flex:1;text-align:center;padding:10px;border:1.5px solid #D7DEE8;border-radius:10px;font-size:14px;cursor:pointer;}
+  .cat input{display:none;}
+  .cat label.sel{border-color:var(--coral);background:#FFF1EE;color:var(--coral);font-weight:bold;}
+  .send{width:100%;background:var(--navy);color:#fff;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:bold;cursor:pointer;}
+  .send:active{opacity:.85;}
+  .anon{text-align:center;color:var(--muted);font-size:12px;margin-top:18px;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;}
+  .toast.on{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">● 안전 토크 라이브</span>
+
+  <div class="pno" id="pno"></div>
+  <div class="qcard" id="qcard"><p id="q">불러오는 중…</p></div>
+
+  <div class="btns" id="btns" style="display:none">
+    <button class="vbtn green" onclick="vote('green')"><span class="dot"></span>완전 공감해요</button>
+    <button class="vbtn amber" onclick="vote('yellow')"><span class="dot"></span>조금 그래요</button>
+    <button class="vbtn red" onclick="vote('red')"><span class="dot"></span>저는 다르게 느껴요</button>
+  </div>
+  <div class="done" id="done" style="display:none">✓ 응답 완료! 다음 의견을 기다려 주세요.</div>
+  <div class="closed" id="closed" style="display:none">지금은 응답 시간이 아닙니다.</div>
+
+  <div class="op">
+    <h3>지금, 더 하고 싶은 말이 있다면</h3>
+    <p>이름은 적지 않습니다. 떠오른 생각을 바로 적어 주세요.</p>
+    <textarea id="opText" placeholder="익명으로 추가 의견 남기기…"></textarea>
+    <div class="cat" id="cat">
+      <label class="sel" data-v="serious"><input type="radio" name="cat" value="serious" checked>진지하게</label>
+      <label data-v="light"><input type="radio" name="cat" value="light">가볍게</label>
+    </div>
+    <button class="send" onclick="sendOp()">익명으로 보내기</button>
+  </div>
+
+  <div class="anon">🔒 모든 응답은 익명입니다. 누가 보냈는지 알 수 없습니다.</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  var curId = null;
+
+  function votedKey(id){ return 'voted_'+id; }
+  function voted(id){ return !!id && localStorage.getItem(votedKey(id)) === '1'; }
+
+  var labels = document.querySelectorAll('#cat label');
+  for (var i=0;i<labels.length;i++){
+    labels[i].addEventListener('click', function(){
+      for (var j=0;j<labels.length;j++) labels[j].classList.remove('sel');
+      this.classList.add('sel');
+      this.querySelector('input').checked = true;
+    });
+  }
+
+  function refresh(){
+    google.script.run.withSuccessHandler(function(s){
+      curId = s.itemId;
+      var qcard = document.getElementById('qcard');
+      var qEl = document.getElementById('q');
+
+      if (!s.itemId){
+        document.getElementById('pno').textContent = '';
+        qcard.classList.add('wait');
+        qEl.textContent = '곧 첫 번째 의견이 공개됩니다. 잠시만 기다려 주세요.';
+        document.getElementById('btns').style.display = 'none';
+        document.getElementById('done').style.display = 'none';
+        document.getElementById('closed').style.display = 'none';
+        return;
+      }
+
+      qcard.classList.remove('wait');
+      document.getElementById('pno').textContent = '의견 '+s.index+' / '+s.total;
+      qEl.textContent = s.text;
+
+      var open = s.votingOpen, has = voted(curId);
+      document.getElementById('btns').style.display   = (open && !has) ? 'flex'  : 'none';
+      document.getElementById('done').style.display   = (open && has)  ? 'block' : 'none';
+      document.getElementById('closed').style.display = (!open)        ? 'block' : 'none';
+    }).getRevealState();
+  }
+
+  function vote(color){
+    if (!curId) return;
+    localStorage.setItem(votedKey(curId), '1');
+    refresh();
+    toast('응답했어요!');
+    google.script.run.castVote(curId, color);
+  }
+
+  function sendOp(){
+    var t = document.getElementById('opText').value;
+    if (!t.trim()){ toast('내용을 적어 주세요'); return; }
+    var cat = document.querySelector('#cat label.sel').getAttribute('data-v');
+    google.script.run.withSuccessHandler(function(r){
+      if (r && r.ok){ document.getElementById('opText').value=''; toast('익명으로 전송됐어요 🔒'); }
+    }).submitOpinion(t, cat, 'live');
+  }
+
+  var tt;
+  function toast(m){
+    var e=document.getElementById('toast'); e.textContent=m; e.classList.add('on');
+    clearTimeout(tt); tt=setTimeout(function(){ e.classList.remove('on'); }, 1800);
+  }
+
+  refresh();
+  setInterval(refresh, 3000);
+</script>
+</body>
+</html>
