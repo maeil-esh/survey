@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>안전 토크 라이브 · Display</title>
+<style>
+  :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--amber:#FFC857;--red:#E84855;--muted:#8A93A6;}
+  *{box-sizing:border-box;}
+  body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;margin:0;background:var(--navy);color:#fff;overflow-x:hidden;}
+  .wrap{padding:30px 40px;}
+  .top{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+  .live{background:var(--coral);color:#fff;font-size:15px;font-weight:bold;padding:6px 14px;border-radius:20px;letter-spacing:1px;}
+  .pno{color:var(--muted);font-size:16px;}
+  .qbox{background:rgba(255,255,255,.05);border:1px solid #2c3c61;border-radius:18px;padding:26px 30px;margin:14px 0 30px;min-height:72px;display:flex;align-items:center;}
+  .qbox p{font-size:30px;font-weight:bold;line-height:1.4;margin:0;word-break:keep-all;}
+  .qbox.wait{color:var(--muted);font-weight:normal;font-size:20px;}
+  .bars{display:flex;flex-direction:column;gap:14px;margin-bottom:34px;}
+  .bar{display:flex;align-items:center;gap:18px;}
+  .blabel{width:190px;font-size:18px;font-weight:bold;}
+  .track{flex:1;background:rgba(255,255,255,.08);border-radius:14px;height:48px;overflow:hidden;}
+  .fill{height:100%;border-radius:14px;transition:width .35s ease;min-width:3px;}
+  .fg{background:var(--green);} .fa{background:var(--amber);} .fr{background:var(--red);}
+  .cnt{width:140px;font-size:19px;font-weight:bold;text-align:right;}
+  .opwrap h2{font-size:20px;margin:0 0 16px;color:var(--coral);}
+  .cards{display:flex;flex-wrap:wrap;gap:13px;}
+  .card{background:#26365C;border-radius:14px;padding:14px 16px;max-width:340px;font-size:15px;line-height:1.5;border:1px solid #34466e;}
+  .card.light{background:#3a2b2b;border-color:#5a3b3b;}
+  .tag{font-size:11px;color:var(--muted);display:block;margin-top:6px;}
+  .empty{color:var(--muted);font-size:16px;}
+  .qrCorner{position:fixed;top:24px;right:28px;background:#fff;border-radius:16px;padding:14px 16px 10px;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.35);z-index:10;display:none;}
+  .qrCorner svg{display:block;width:108px;height:108px;}
+  .qrCorner .cap{color:var(--navy);font-size:12.5px;font-weight:bold;margin-top:6px;}
+  .qrBig{display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff;border-radius:22px;padding:26px 30px 20px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+  .qrBig svg{width:230px;height:230px;}
+  .qrBig .cap{color:var(--navy);font-size:16px;font-weight:bold;}
+  .waitRow{display:flex;align-items:center;gap:34px;}
+  #setup{color:#1B2A4A;max-width:780px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="setup"></div>
+  <div class="top"><span class="live">● LIVE</span><span class="pno" id="pno"></span></div>
+
+  <div id="waitArea" style="display:none">
+    <div class="waitRow">
+      <div class="qbox wait" style="flex:1"><p id="qWait">곧 첫 번째 의견이 공개됩니다…</p></div>
+      <div class="qrBig">
+        <div id="qrBigBox"></div>
+        <div class="cap">참여 QR 스캔 → 신호등 응답</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="liveArea" style="display:none">
+    <div class="qbox" id="qbox"><p id="q"></p></div>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <div class="opwrap">
+    <h2>🔒 실시간 익명 의견 <span id="opcount" style="color:#fff;font-size:15px;"></span></h2>
+    <div class="cards" id="cards"><span class="empty">아직 추가 의견이 없습니다.</span></div>
+  </div>
+</div>
+
+<div class="qrCorner" id="qrCorner">
+  <div id="qrCornerBox"></div>
+  <div class="cap">참여 QR</div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="qrlib.js"></script>
+<script>
+  var qrDrawn = false;
+
+  function drawQrOnce(){
+    if (qrDrawn) return;
+    qrDrawn = true;
+    var voteUrl = SafeTalk.makePageUrl('index.html');
+    renderQrInto(document.getElementById('qrCornerBox'), voteUrl, { cell: 4, quiet: 4, dark:'#1B2A4A' });
+    renderQrInto(document.getElementById('qrBigBox'), voteUrl, { cell: 7, quiet: 4, dark:'#1B2A4A' });
+  }
+
+  function refresh(){
+    if (SafeTalk.showSetupIfNeeded('setup')) return;
+    drawQrOnce();
+    SafeTalk.api('getDisplayState').then(function(s){
+      var waitArea = document.getElementById('waitArea');
+      var liveArea = document.getElementById('liveArea');
+
+      if (!s.itemId){
+        document.getElementById('pno').textContent = '실시간 대기 중 · 1초 자동 갱신';
+        waitArea.style.display = 'block';
+        liveArea.style.display = 'none';
+        document.getElementById('qrCorner').style.display = 'none';
+      } else {
+        waitArea.style.display = 'none';
+        liveArea.style.display = 'block';
+        document.getElementById('qrCorner').style.display = 'block';
+        document.getElementById('pno').textContent =
+          '의견 '+s.index+' / '+s.total + (s.votingOpen ? '  ·  응답 중' : '  ·  응답 종료') + '  ·  1초 자동 갱신';
+        document.getElementById('q').textContent = s.text;
+
+        var t = s.tally || { green:0, yellow:0, red:0 };
+        t.green = Number(t.green || 0); t.yellow = Number(t.yellow || 0); t.red = Number(t.red || 0);
+        var total = (t.green+t.yellow+t.red) || 1;
+        function pct(n){ return Math.round(n/total*100); }
+        document.getElementById('bars').innerHTML =
+          bar('🟢 완전 공감','fg',t.green,pct(t.green)) +
+          bar('🟡 조금 그렇다','fa',t.yellow,pct(t.yellow)) +
+          bar('🔴 다르게 느낀다','fr',t.red,pct(t.red));
+      }
+
+      var ops = s.liveOpinions || [];
+      document.getElementById('opcount').textContent = ops.length ? ('('+ops.length+')') : '';
+      if (!ops.length){
+        document.getElementById('cards').innerHTML = '<span class="empty">아직 추가 의견이 없습니다.</span>';
+      } else {
+        document.getElementById('cards').innerHTML = ops.map(function(o){
+          var light = (o.category === 'light');
+          return '<div class="card'+(light?' light':'')+'">'+SafeTalk.esc(o.text)+
+                 '<span class="tag">'+(light?'가볍게':'진지')+'</span></div>';
+        }).join('');
+      }
+    }).catch(function(err){
+      document.getElementById('pno').textContent = err.message;
+    });
+  }
+
+  function bar(label,cls,n,p){
+    return '<div class="bar"><div class="blabel">'+label+'</div>'+ 
+           '<div class="track"><div class="fill '+cls+'" style="width:'+p+'%"></div></div>'+ 
+           '<div class="cnt">'+n+'표 · '+p+'%</div></div>';
+  }
+
+  refresh();
+  setInterval(refresh, (SafeTalk.cfg.REFRESH_MS_DISPLAY || 1000));
+</script>
+</body>
+</html>

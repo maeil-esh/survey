@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>안전 토크 라이브 · Admin</title>
+<style>
+  :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--red:#E84855;--amber:#FFC857;--muted:#6B7689;--bg:#F4F6FA;}
+  *{box-sizing:border-box;}
+  body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;margin:0;background:var(--bg);color:var(--navy);}
+  .wrap{max-width:680px;margin:0 auto;padding:22px 16px 50px;}
+  h1{font-size:21px;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:14px;line-height:1.5;}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5;}
+  .tab{flex:1;text-align:center;padding:11px;border-radius:10px;background:#fff;border:2px solid #E2E8F0;font-weight:bold;font-size:13.5px;cursor:pointer;}
+  .tab.active{border-color:var(--coral);color:var(--coral);background:#FFF1EE;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .state{background:var(--navy);color:#fff;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:14.5px;font-weight:bold;line-height:1.6;}
+  .state small{display:block;font-weight:normal;color:#AEB9D1;font-size:12px;word-break:keep-all;}
+  .navrow{display:flex;gap:10px;margin-bottom:18px;}
+  .navrow button{flex:1;border:none;border-radius:12px;padding:14px;font-size:14.5px;font-weight:bold;cursor:pointer;font-family:inherit;background:#fff;border:2px solid #E2E8F0;color:var(--navy);}
+  .navrow button.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .row2{display:flex;gap:10px;margin-bottom:10px;}
+  .row2 button{flex:1;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .open{background:var(--green);color:#fff;} .close{background:var(--red);color:#fff;}
+  .inboxItem,.curItem{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(27,42,74,.06);}
+  .inboxItem textarea{width:100%;border:1.5px solid #D7DEE8;border-radius:10px;padding:10px;font-size:14px;font-family:inherit;min-height:64px;margin-top:8px;}
+  .tagline{font-size:11.5px;color:var(--muted);}
+  .actRow{display:flex;gap:8px;margin-top:8px;}
+  .actRow button{flex:1;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .adopt{background:var(--green);color:#fff;}
+  .skip{background:#EEF1F6;color:var(--muted);}
+  .curItem{display:flex;align-items:center;gap:10px;}
+  .curItem.current{border:2px solid var(--coral);background:#FFF1EE;}
+  .curText{flex:1;font-size:14px;line-height:1.4;word-break:keep-all;}
+  .curBtns{display:flex;flex-direction:column;gap:4px;}
+  .iconbtn{border:none;background:#EEF1F6;color:var(--navy);border-radius:7px;width:30px;height:26px;font-size:12px;cursor:pointer;}
+  .revealBtn{background:var(--coral);color:#fff;border:none;border-radius:9px;padding:9px 12px;font-size:12.5px;font-weight:bold;cursor:pointer;white-space:nowrap;font-family:inherit;}
+  .delBtn{background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:7px;width:30px;height:26px;font-size:12px;cursor:pointer;}
+  .addBox{background:#fff;border-radius:12px;padding:14px;margin-bottom:16px;}
+  .addBox textarea{width:100%;border:1.5px solid #D7DEE8;border-radius:10px;padding:10px;font-size:14px;font-family:inherit;min-height:60px;}
+  .addBtn{width:100%;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:bold;margin-top:8px;cursor:pointer;font-family:inherit;}
+  .resetRow{display:flex;gap:10px;margin-top:22px;}
+  .resetRow button{flex:1;border-radius:12px;padding:12px;font-size:13px;font-weight:bold;cursor:pointer;background:#fff;border:2px solid var(--red);color:var(--red);font-family:inherit;}
+  .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:18px 0;}
+  .qrShare{display:flex;gap:10px;margin-bottom:16px;}
+  .qrCard{flex:1;background:#fff;border-radius:14px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(27,42,74,.06);overflow:hidden;}
+  .qrCard svg{width:120px;height:120px;max-width:100%;}
+  .qrCard .ttl{font-weight:bold;font-size:13px;margin:8px 0 2px;color:var(--navy);}
+  .qrCard .url{font-size:10.5px;color:var(--muted);word-break:break-all;}
+  .login{background:#fff;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 4px 14px rgba(27,42,74,.08);}
+  .login input{width:100%;border:1.5px solid #D7DEE8;border-radius:10px;padding:12px;font-size:16px;margin:8px 0;font-family:inherit;}
+  .login button{width:100%;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  .toplinks{display:flex;gap:8px;margin:10px 0 16px;}
+  .toplinks a{flex:1;text-align:center;background:#fff;color:var(--navy);border:1px solid #E2E8F0;border-radius:10px;padding:9px;font-size:12px;font-weight:bold;text-decoration:none;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50;white-space:nowrap;}
+  .toast.on{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>진행자 컨트롤</h1>
+  <div class="sub">GitHub Pages 화면 + GAS API 저장소 구조입니다. 사전 의견을 채택하고, 당일 하나씩 공개하며 신호등 응답을 실시간 집계합니다.</div>
+  <div id="setup"></div>
+
+  <div id="loginBox" class="login" style="display:none">
+    <b>관리자 비밀번호</b>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">기본값은 1234입니다. GAS 스크립트 속성 ADMIN_KEY로 변경할 수 있습니다.</div>
+    <input id="adminKeyInput" type="password" placeholder="관리자 비밀번호 입력" onkeydown="if(event.key==='Enter') login()">
+    <button onclick="login()">관리자 접속</button>
+  </div>
+
+  <div id="adminApp" style="display:none">
+    <div class="toplinks">
+      <a id="voteLink" target="_blank">참여자 화면</a>
+      <a id="surveyLink" target="_blank">사전 설문</a>
+      <a id="displayLink" target="_blank">발표 화면</a>
+    </div>
+
+    <div class="qrShare">
+      <div class="qrCard">
+        <div id="qrSurvey"></div>
+        <div class="ttl">사전 설문 QR</div>
+        <div class="url" id="surveyUrlText"></div>
+      </div>
+      <div class="qrCard">
+        <div id="qrVote"></div>
+        <div class="ttl">참여자 투표 QR</div>
+        <div class="url" id="voteUrlText"></div>
+      </div>
+    </div>
+
+    <div class="state" id="state">상태 불러오는 중…</div>
+
+    <div class="navrow">
+      <button onclick="prev()">◀ 이전 의견</button>
+      <button class="primary" onclick="next()">다음 의견 공개 ▶</button>
+    </div>
+    <div class="row2">
+      <button class="open" onclick="setVoting(true)">응답 열기</button>
+      <button class="close" onclick="setVoting(false)">응답 닫기</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-t="inbox" onclick="switchTab('inbox')">사전 의견함 <span id="inboxCount"></span></div>
+      <div class="tab" data-t="curated" onclick="switchTab('curated')">공개 순서 <span id="curCount"></span></div>
+    </div>
+
+    <div class="panel active" id="panel-inbox">
+      <div id="inboxList"><div class="empty">불러오는 중…</div></div>
+    </div>
+
+    <div class="panel" id="panel-curated">
+      <div class="addBox">
+        <textarea id="customText" placeholder="진행자가 직접 의견(또는 문항) 추가하기…"></textarea>
+        <button class="addBtn" onclick="addCustom()">+ 순서에 추가</button>
+      </div>
+      <div id="curList"><div class="empty">불러오는 중…</div></div>
+    </div>
+
+    <div class="resetRow">
+      <button onclick="doResetTallies()">투표 집계만 초기화</button>
+      <button onclick="doResetAll()">전체 데이터 초기화</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="qrlib.js"></script>
+<script>
+  var qrDrawn = false;
+  var refreshTimer = null;
+
+  function boot(){
+    if (SafeTalk.showSetupIfNeeded('setup')) return;
+    document.getElementById('voteLink').href = SafeTalk.makePageUrl('index.html');
+    document.getElementById('surveyLink').href = SafeTalk.makePageUrl('survey.html');
+    document.getElementById('displayLink').href = SafeTalk.makePageUrl('display.html');
+    if (!SafeTalk.getAdminKey()) {
+      document.getElementById('loginBox').style.display = 'block';
+      document.getElementById('adminApp').style.display = 'none';
+    } else {
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'block';
+      drawQrOnce();
+      refreshAll();
+      refreshTimer = setInterval(refreshAll, (SafeTalk.cfg.REFRESH_MS_ADMIN || 2000));
+    }
+  }
+
+  function login(){
+    var key = document.getElementById('adminKeyInput').value;
+    SafeTalk.setAdminKey(key);
+    SafeTalk.adminApi('adminLogin').then(function(r){
+      if (r && r.ok) {
+        SafeTalk.toast('관리자 접속 완료');
+        boot();
+      } else {
+        SafeTalk.setAdminKey('');
+        SafeTalk.toast('비밀번호가 맞지 않습니다');
+      }
+    }).catch(function(){
+      SafeTalk.setAdminKey('');
+      SafeTalk.toast('접속 실패');
+    });
+  }
+
+  function drawQrOnce(){
+    if (qrDrawn) return;
+    qrDrawn = true;
+    var surveyUrl = SafeTalk.makePageUrl('survey.html');
+    var voteUrl = SafeTalk.makePageUrl('index.html');
+    document.getElementById('surveyUrlText').textContent = surveyUrl;
+    document.getElementById('voteUrlText').textContent = voteUrl;
+    renderQrInto(document.getElementById('qrSurvey'), surveyUrl, { cell: 4, quiet: 4, dark:'#1B2A4A' });
+    renderQrInto(document.getElementById('qrVote'), voteUrl, { cell: 4, quiet: 4, dark:'#1B2A4A' });
+  }
+
+  function switchTab(t){
+    document.querySelectorAll('.tab').forEach(function(el){ el.classList.toggle('active', el.getAttribute('data-t')===t); });
+    document.getElementById('panel-inbox').classList.toggle('active', t==='inbox');
+    document.getElementById('panel-curated').classList.toggle('active', t==='curated');
+  }
+
+  function pullState(){
+    SafeTalk.api('getRevealState').then(function(s){
+      document.getElementById('state').innerHTML =
+        (s.itemId ? ('현재 공개: <b>의견 '+s.index+' / '+s.total+'</b>') : '아직 공개된 의견 없음') +
+        '&nbsp;&nbsp;·&nbsp;&nbsp;' + (s.votingOpen ? '🟢 응답 열림' : '🔴 응답 닫힘') +
+        '<small>' + (s.text ? SafeTalk.esc(s.text) : '') + '</small>';
+    }).catch(function(err){
+      document.getElementById('state').textContent = err.message;
+    });
+  }
+
+  function next(){ SafeTalk.adminApi('nextReveal').then(refreshAll); }
+  function prev(){ SafeTalk.adminApi('prevReveal').then(refreshAll); }
+  function setVoting(o){ SafeTalk.adminApi('toggleVoting', { open: o ? 'true':'false' }).then(refreshAll); }
+
+  function loadInbox(){
+    SafeTalk.adminApi('getPreSurveyInbox').then(function(r){
+      if (!r || !r.ok) { authFail(r); return; }
+      var list = r.data || [];
+      document.getElementById('inboxCount').textContent = list.length ? ('('+list.length+')') : '';
+      var el = document.getElementById('inboxList');
+      if (!list.length){ el.innerHTML = '<div class="empty">대기 중인 사전 의견이 없습니다.</div>'; return; }
+      el.innerHTML = list.map(function(o){
+        return '<div class="inboxItem">'+
+               '<div class="tagline">'+(o.category==='light'?'가볍게':'진지')+' · 원문</div>'+
+               '<div>'+SafeTalk.esc(o.text)+'</div>'+
+               '<textarea id="edit_'+o.rowIndex+'">'+SafeTalk.esc(o.text)+'</textarea>'+ 
+               '<div class="actRow">'+
+               '<button class="adopt" onclick="adopt('+o.rowIndex+')">✓ 채택해서 추가</button>'+ 
+               '<button class="skip" onclick="skip('+o.rowIndex+')">건너뛰기</button>'+ 
+               '</div></div>';
+      }).join('');
+    }).catch(function(err){ document.getElementById('inboxList').innerHTML = '<div class="empty">'+SafeTalk.esc(err.message)+'</div>'; });
+  }
+
+  function adopt(rowIndex){
+    var text = document.getElementById('edit_'+rowIndex).value;
+    SafeTalk.adminApi('adoptOpinion', { rowIndex: rowIndex, editedText: text }).then(function(){ loadInbox(); loadCurated(); });
+  }
+  function skip(rowIndex){
+    SafeTalk.adminApi('dismissOpinion', { rowIndex: rowIndex }).then(loadInbox);
+  }
+
+  function loadCurated(){
+    Promise.all([
+      SafeTalk.api('getRevealState'),
+      SafeTalk.adminApi('getCuratedList')
+    ]).then(function(res){
+      var state = res[0] || {};
+      var r = res[1] || {};
+      if (!r.ok) { authFail(r); return; }
+      var list = r.data || [];
+      document.getElementById('curCount').textContent = list.length ? ('('+list.length+')') : '';
+      var el = document.getElementById('curList');
+      if (!list.length){ el.innerHTML = '<div class="empty">아직 추가된 의견이 없습니다. 사전 의견함에서 채택하거나 직접 추가하세요.</div>'; return; }
+      el.innerHTML = list.map(function(it, idx){
+        var isCur = (it.id === state.itemId);
+        return '<div class="curItem'+(isCur?' current':'')+'">'+
+               '<div class="curBtns">'+
+               '<button class="iconbtn" onclick="moveUp(\''+it.id+'\')">▲</button>'+ 
+               '<button class="iconbtn" onclick="moveDown(\''+it.id+'\')">▼</button>'+ 
+               '</div>'+ 
+               '<div class="curText"><b>'+(idx+1)+'.</b> '+SafeTalk.esc(it.text)+(isCur?' &nbsp;<span style="color:#FF6B5B;font-weight:bold;">● 공개중</span>':'')+'</div>'+ 
+               '<button class="revealBtn" onclick="reveal(\''+it.id+'\')">이 의견 공개</button>'+ 
+               '<button class="delBtn" onclick="removeItem(\''+it.id+'\')">✕</button>'+ 
+               '</div>';
+      }).join('');
+    });
+  }
+
+  function moveUp(id){ SafeTalk.adminApi('moveCurated', { id: id, direction: -1 }).then(loadCurated); }
+  function moveDown(id){ SafeTalk.adminApi('moveCurated', { id: id, direction: 1 }).then(loadCurated); }
+  function removeItem(id){
+    if (confirm('이 의견을 순서에서 삭제할까요?')){
+      SafeTalk.adminApi('deleteCurated', { id: id }).then(refreshAll);
+    }
+  }
+  function reveal(id){ SafeTalk.adminApi('setCurrentReveal', { id: id }).then(refreshAll); }
+
+  function addCustom(){
+    var t = document.getElementById('customText').value;
+    if (!t.trim()) return;
+    SafeTalk.adminApi('addCustomCurated', { text: t }).then(function(){
+      document.getElementById('customText').value = '';
+      loadCurated();
+    });
+  }
+
+  function doResetTallies(){
+    if (confirm('현재까지의 투표 집계만 초기화합니다. 계속할까요?')){
+      SafeTalk.adminApi('resetTallies').then(refreshAll);
+    }
+  }
+  function doResetAll(){
+    if (confirm('⚠ 사전 의견 · 공개 순서 · 집계를 모두 삭제합니다. 되돌릴 수 없습니다. 계속할까요?')){
+      SafeTalk.adminApi('resetAll').then(refreshAll);
+    }
+  }
+
+  function authFail(r){
+    if (r && r.error === 'ADMIN_AUTH_REQUIRED') {
+      SafeTalk.setAdminKey('');
+      if (refreshTimer) clearInterval(refreshTimer);
+      SafeTalk.toast('관리자 비밀번호를 다시 입력하세요');
+      boot();
+    }
+  }
+
+  function refreshAll(){ pullState(); loadInbox(); loadCurated(); }
+  boot();
+</script>
+</body>
+</html>
