@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-bigger-current-comments-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-stable-current-comments-2';</script>
 <style>
   :root{
     --navy:#1B2A4A;
@@ -289,9 +289,9 @@
     </section>
   </main>
 
-<script src="config.js?v=20260622-display-bigger-current-comments-1"></script>
-<script src="app.js?v=20260622-display-bigger-current-comments-1"></script>
-<script src="qrlib.js?v=20260622-display-bigger-current-comments-1"></script>
+<script src="config.js?v=20260622-display-stable-current-comments-2"></script>
+<script src="app.js?v=20260622-display-stable-current-comments-2"></script>
+<script src="qrlib.js?v=20260622-display-stable-current-comments-2"></script>
 <script>
 (function(){
   var refreshTimer = null;
@@ -299,6 +299,18 @@
   var lastItemId = '';
   var commentsAction = 'getLiveComments';
   var tallyAction = 'getTallies';
+
+  /* GAS 응답 지연 방지용
+     - 상태/집계는 빠르게 갱신
+     - 익명 의견은 매번 호출하지 않고 3회 중 1회만 호출
+     - getLiveComments가 아직 GAS에 없거나 지연되면 기존 화면을 지우지 않고 조용히 재시도 */
+  var refreshSeq = 0;
+  var commentsFailCount = 0;
+  var commentsHardDisabled = false;
+  var lastCommentsByItem = {};
+  var lastCommentLoadAt = 0;
+  var MIN_DISPLAY_REFRESH_MS = 2600;
+  var COMMENT_EVERY_TICKS = 3;
 
   var CHOICES = [
     {name:'green', keys:['green','agree','full','positive','완전 공감','완전공감','1','g']},
@@ -334,7 +346,8 @@
     if (window.SafeTalk && SafeTalk.showSetupIfNeeded && SafeTalk.showSetupIfNeeded('setup')) return;
     drawQr();
     refreshAll();
-    refreshTimer = setInterval(refreshAll, (SafeTalk.cfg.REFRESH_MS_DISPLAY || SafeTalk.cfg.REFRESH_MS || 2200));
+    var cfgMs = (SafeTalk.cfg.REFRESH_MS_DISPLAY || SafeTalk.cfg.REFRESH_MS || 3000);
+    refreshTimer = setInterval(refreshAll, Math.max(MIN_DISPLAY_REFRESH_MS, cfgMs));
   }
 
   function drawQr(){
@@ -353,13 +366,18 @@
   function refreshAll(){
     if (refreshInFlight) return;
     refreshInFlight = true;
+    refreshSeq++;
+
     api('getRevealState').then(function(state){
       state = state || {};
       renderState(state);
-      return Promise.all([
-        loadTallies(state).catch(function(){ renderTallies({green:0, amber:0, red:0}); }),
-        loadComments(state).catch(function(){ renderComments([], state, true); })
-      ]);
+      return loadTallies(state).catch(function(){
+        renderTallies({green:0, amber:0, red:0});
+      }).then(function(){
+        var itemChanged = norm(state.itemId || state.id || state.currentId || '') !== lastItemId;
+        var shouldLoadComments = itemChanged || refreshSeq === 1 || (refreshSeq % COMMENT_EVERY_TICKS === 0);
+        if (shouldLoadComments) return loadCommentsSafe(state);
+      });
     }).catch(function(err){
       document.getElementById('statusText').textContent = (SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : err.message || err);
     }).finally(function(){ refreshInFlight = false; });
@@ -369,7 +387,8 @@
     var id = norm(s.itemId || s.id || s.currentId || '');
     if (id !== lastItemId) {
       lastItemId = id;
-      renderComments([], s, false);
+      commentsFailCount = 0;
+      renderComments([], s, {mode:'reset'});
       renderTallies({green:0, amber:0, red:0});
     }
     var qt = document.getElementById('questionText');
@@ -445,22 +464,59 @@
     if (!row || typeof row === 'string') return '';
     return norm(row.createdAt || row.created_at || row.timestamp || row.time || row.date || row.submittedAt || row.submitted_at);
   }
+  function isMissingCommentApi(err){
+    var msg = String((err && (err.message || err.error)) || err || '').toUpperCase();
+    return msg.indexOf('UNKNOWN') >= 0 || msg.indexOf('INVALID_ACTION') >= 0 || msg.indexOf('NOT_FOUND') >= 0 || msg.indexOf('NO_ACTION') >= 0 || msg.indexOf('지원') >= 0;
+  }
+
+  function loadCommentsSafe(state){
+    return loadComments(state).catch(function(err){
+      commentsFailCount++;
+      if (isMissingCommentApi(err)) commentsHardDisabled = true;
+      renderComments(lastCommentsByItem[String(state && state.itemId || '')] || [], state, {
+        mode: commentsHardDisabled ? 'disabled' : 'retry',
+        failCount: commentsFailCount
+      });
+    });
+  }
 
   function loadComments(state){
     if (!state || !state.itemId) {
-      renderComments([], state, false);
+      renderComments([], state, {mode:'empty'});
+      return Promise.resolve();
+    }
+    if (commentsHardDisabled) {
+      renderComments([], state, {mode:'disabled'});
       return Promise.resolve();
     }
     return api(commentsAction, {itemId: state.itemId, limit: 12}).then(function(r){
       if (r && r.ok === false && r.error) throw new Error(r.error);
       var list = firstArray(r);
       var hasItemTag = list.some(function(row){ return !!getItemField(row); });
-      var filtered = hasItemTag ? list.filter(function(row){ return getItemField(row) === String(state.itemId); }) : list;
-      renderComments(filtered, state, false, hasItemTag);
+      var filtered;
+
+      if (hasItemTag) {
+        filtered = list.filter(function(row){ return getItemField(row) === String(state.itemId); });
+      } else if (list.length && (r && (r.filteredByItemId === true || r.itemId === state.itemId || (r.data && r.data.filteredByItemId === true)))) {
+        filtered = list;
+      } else {
+        /* itemId 없는 전체 댓글은 화면에 뿌리지 않음: 현재 의견별 취합 원칙 유지 */
+        filtered = [];
+        if (list.length) {
+          renderComments(filtered, state, {mode:'needItemId'});
+          return;
+        }
+      }
+
+      commentsFailCount = 0;
+      lastCommentLoadAt = Date.now();
+      lastCommentsByItem[String(state.itemId)] = filtered;
+      renderComments(filtered, state, {mode:'ok', hasItemTag:hasItemTag});
     });
   }
 
-  function renderComments(list, state, error, hasItemTag){
+  function renderComments(list, state, options){
+    options = options || {};
     var el = document.getElementById('commentList');
     var meta = document.getElementById('commentMeta');
     var id = state && state.itemId;
@@ -468,18 +524,43 @@
       return {text:getCommentText(row), time:getCommentTime(row)};
     }).filter(function(row){ return !!row.text; }).slice(-8).reverse();
 
-    meta.textContent = id ? ('· 현재 의견별 취합 ' + clean.length + '건') : '';
-
-    if (error) {
-      el.className = 'commentList';
-      el.innerHTML = '<div class="warnMsg">의견을 불러오는 중 지연이 있습니다. 잠시 후 자동 재시도합니다.</div>';
-      return;
-    }
     if (!id) {
+      meta.textContent = '';
       el.className = 'commentList';
       el.innerHTML = '<div class="emptyMsg">공개된 의견이 생기면 해당 의견의 추가 의견만 표시됩니다.</div>';
       return;
     }
+
+    if (options.mode === 'disabled') {
+      meta.textContent = '· GAS 댓글 조회 연동 대기';
+      el.className = 'commentList';
+      el.innerHTML = '<div class="emptyMsg">익명 의견은 GAS의 getLiveComments 연동 후 현재 의견별로 표시됩니다.</div>';
+      return;
+    }
+
+    if (options.mode === 'needItemId') {
+      meta.textContent = '· 현재 의견별 취합 대기';
+      el.className = 'commentList';
+      el.innerHTML = '<div class="emptyMsg">전체 댓글은 숨김 처리했습니다. 댓글 저장 시 itemId가 같이 저장되면 이 의견에 해당하는 댓글만 표시됩니다.</div>';
+      return;
+    }
+
+    if (options.mode === 'retry') {
+      meta.textContent = '· 의견 재시도 중';
+      if (clean.length) {
+        el.className = 'commentList';
+        el.innerHTML = clean.map(function(row){
+          var title = row.time ? esc(row.time) + ' · ' + esc(row.text) : esc(row.text);
+          return '<div class="commentItem" title="' + title + '">' + esc(row.text) + '</div>';
+        }).join('');
+      } else {
+        el.className = 'commentList';
+        el.innerHTML = '<div class="emptyMsg">익명 의견을 다시 불러오는 중입니다. 화면은 자동 재시도합니다.</div>';
+      }
+      return;
+    }
+
+    meta.textContent = '· 현재 의견별 취합 ' + clean.length + '건';
     if (!clean.length) {
       el.className = 'commentList';
       el.innerHTML = '<div class="emptyMsg">아직 이 의견에 대한 추가 의견이 없습니다.</div>';
