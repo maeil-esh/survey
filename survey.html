@@ -3,101 +3,445 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>안전 토크 라이브 · 사전 의견</title>
+<title>CSO와 터놓고 말해요 · 사전 의견</title>
+
 <style>
-  :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--muted:#6B7689;--bg:#F4F6FA;}
-  *{box-sizing:border-box;}
-  body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;margin:0;background:var(--bg);color:var(--navy);}
-  .wrap{max-width:520px;margin:0 auto;padding:26px 18px 48px;}
-  .badge{display:inline-block;background:var(--navy);color:#fff;font-size:12px;font-weight:bold;padding:5px 12px;border-radius:20px;letter-spacing:1px;}
-  h1{font-size:23px;margin:14px 0 6px;}
-  .sub{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:20px;}
-  .lock{background:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;margin-bottom:22px;box-shadow:0 4px 14px rgba(27,42,74,.06);}
-  .lock b{display:block;font-size:14px;}
-  .lock span{color:var(--muted);font-size:13px;}
-  label.field{display:block;font-weight:bold;font-size:14.5px;margin:18px 0 8px;}
-  textarea{width:100%;border:1.5px solid #D7DEE8;border-radius:12px;padding:13px;font-size:15px;font-family:inherit;resize:vertical;min-height:96px;background:#fff;}
-  .cat{display:flex;gap:8px;margin-top:10px;}
-  .cat label{flex:1;text-align:center;padding:11px;border:1.5px solid #D7DEE8;border-radius:10px;font-size:14px;cursor:pointer;background:#fff;}
-  .cat input{display:none;}
-  .cat label.sel{border-color:var(--coral);background:#FFF1EE;color:var(--coral);font-weight:bold;}
-  .send{width:100%;background:var(--coral);color:#fff;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:22px;font-family:inherit;}
-  .doneWrap{display:none;text-align:center;background:#fff;border-radius:16px;padding:30px 20px;box-shadow:0 4px 14px rgba(27,42,74,.08);}
-  .doneWrap.show{display:block;}
-  .doneWrap .ico{width:54px;height:54px;border-radius:50%;background:var(--green);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
-  .doneWrap h2{font-size:18px;margin:0 0 6px;}
-  .doneWrap p{color:var(--muted);font-size:14px;margin:0 0 18px;}
-  .again{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50;white-space:nowrap;}
-  .toast.on{opacity:1;}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <span class="badge">사전 의견 수렴 · D-Day 전</span>
-  <div id="setup"></div>
-  <h1>워크숍 전, 미리 들려주세요</h1>
-  <div class="sub">곧 있을 ‘안전 토크 라이브’에서 CSO와 직접 나눌 이야기를 미리 받습니다.<br>당일엔 이 중 일부를 익명으로 공개하고, 다 같이 신호등으로 공감 정도를 표시한 뒤 CSO가 답합니다.</div>
-
-  <div class="lock">
-    <div>🔒</div>
-    <div><b>완전 익명입니다</b><span>이름·부서를 묻지 않으며, 누가 보냈는지 저장하지 않습니다. 여러 건 보내셔도 됩니다.</span></div>
-  </div>
-
-  <div id="form">
-    <label class="field">CSO에게 묻고 싶은 것 / 현장에서 바꾸고 싶은 안전 이슈</label>
-    <textarea id="opText" placeholder="예) 보고했지만 끝내 바뀌지 않았던 경험이 있나요? / 인력·예산이 늘 부족합니다…"></textarea>
-
-    <label class="field">이 의견의 톤</label>
-    <div class="cat" id="cat">
-      <label class="sel" data-v="serious"><input type="radio" name="cat" value="serious" checked>진지하게</label>
-      <label data-v="light"><input type="radio" name="cat" value="light">가볍게</label>
-    </div>
-
-    <button class="send" id="sendBtn" onclick="send()">익명으로 제출하기</button>
-  </div>
-
-  <div class="doneWrap" id="doneWrap">
-    <div class="ico">✓</div>
-    <h2>잘 받았습니다</h2>
-    <p>워크숍 당일, 이 의견이 다뤄질 수도 있어요.<br>더 보내고 싶은 의견이 있다면 계속 적어 주세요.</p>
-    <button class="again" onclick="again()">의견 더 보내기</button>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-<script src="config.js"></script>
-<script src="app.js"></script>
-<script>
-  var cat = 'serious';
-  var labels = document.querySelectorAll('#cat label');
-  for (var i = 0; i < labels.length; i++) {
-    labels[i].addEventListener('click', function () {
-      for (var j = 0; j < labels.length; j++) labels[j].classList.remove('sel');
-      this.classList.add('sel');
-      this.querySelector('input').checked = true;
-      cat = this.getAttribute('data-v');
-    });
+  :root {
+    --navy: #1B2A4A;
+    --coral: #FF6B5B;
+    --green: #2EB872;
+    --muted: #6B7689;
+    --bg: #F4F6FA;
   }
 
-  SafeTalk.showSetupIfNeeded('setup');
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--navy);
+  }
+
+  .wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 26px 18px 48px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  #countdown {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+
+  h1 {
+    font-size: 25px;
+    line-height: 1.35;
+    margin: 0 0 10px;
+    letter-spacing: -0.4px;
+  }
+
+  .desc {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.65;
+    margin: 0 0 22px;
+  }
+
+  .safeBox {
+    background: #fff;
+    border-radius: 16px;
+    padding: 17px 18px;
+    margin: 0 0 24px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    box-shadow: 0 8px 20px rgba(27, 42, 74, 0.06);
+  }
+
+  .safeBox .ico {
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .safeBox strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 5px;
+  }
+
+  .safeBox p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .label {
+    display: block;
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0 0 9px;
+  }
+
+  textarea {
+    width: 100%;
+    border: 1.5px solid #D7DEE8;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 104px;
+    background: #fff;
+    color: var(--navy);
+    line-height: 1.5;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--coral);
+  }
+
+  textarea::placeholder {
+    color: #7C8798;
+  }
+
+  .field {
+    margin-bottom: 24px;
+  }
+
+  .cat {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .cat label {
+    flex: 1;
+    text-align: center;
+    padding: 11px;
+    border: 1.5px solid #D7DEE8;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    background: #fff;
+    color: var(--navy);
+  }
+
+  .cat input {
+    display: none;
+  }
+
+  .cat label.sel {
+    border-color: var(--coral);
+    background: #FFF1EE;
+    color: var(--coral);
+    font-weight: bold;
+  }
+
+  .send {
+    width: 100%;
+    background: var(--coral);
+    color: #fff;
+    border: none;
+    border-radius: 11px;
+    padding: 17px 16px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .send:disabled {
+    opacity: 0.65;
+    cursor: default;
+  }
+
+  .doneWrap {
+    display: none;
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(27, 42, 74, 0.06);
+  }
+
+  .doneWrap.show {
+    display: block;
+  }
+
+  .doneWrap .ico {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+  }
+
+  .doneWrap h2 {
+    font-size: 18px;
+    margin: 0 0 6px;
+  }
+
+  .doneWrap p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 18px;
+    line-height: 1.5;
+  }
+
+  .again {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    background: rgba(27, 42, 74, 0.94);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  @media (max-width: 360px) {
+    .wrap {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+
+    h1 {
+      font-size: 23px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 7px 11px;
+    }
+
+    .send {
+      font-size: 17px;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="badge">
+      사전 의견 수렴 · <span id="countdown">D-00 00:00:00</span>
+    </div>
+
+    <h1>워크숍 전, 미리 들려주세요</h1>
+
+    <p class="desc">
+      곧 있을 ‘CSO와 터놓고 말해요’에서 CSO와 직접 나눌 이야기를 미리 받습니다.<br>
+      당일엔 이 중 일부를 익명으로 공개하고, 다 같이 신호등으로 공감 정도를 표시한 뒤 CSO가 답합니다.
+    </p>
+
+    <div class="safeBox">
+      <div class="ico">🔒</div>
+      <div>
+        <strong>완전 익명입니다</strong>
+        <p>
+          이름·부서를 묻지 않으며, 누가 보냈는지 저장하지 않습니다.
+          여러 건 보내셔도 됩니다.
+        </p>
+      </div>
+    </div>
+
+    <div id="form">
+      <div class="field">
+        <label class="label" for="opText">
+          CSO에게 묻고 싶은 것 / 현장에서 바꾸고 싶은 안전 이슈
+        </label>
+
+        <textarea
+          id="opText"
+          placeholder="예) 보고했지만 끝내 바뀌지 않았던 경험이 있나요? / 인력·예산이 늘 부족합니다..."
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <div class="label">이 의견의 톤</div>
+
+        <div class="cat">
+          <label id="label-serious" class="sel" onclick="setCat('serious')">
+            <input type="radio" name="cat" value="serious" checked>
+            진지하게
+          </label>
+
+          <label id="label-light" onclick="setCat('light')">
+            <input type="radio" name="cat" value="light">
+            가볍게
+          </label>
+        </div>
+      </div>
+
+      <button id="sendBtn" class="send" type="button" onclick="send()">
+        익명으로 제출하기
+      </button>
+    </div>
+
+    <div id="doneWrap" class="doneWrap">
+      <div class="ico">✓</div>
+      <h2>의견이 접수되었습니다</h2>
+      <p>
+        보내주신 의견은 익명으로 모아<br>
+        ‘CSO와 터놓고 말해요’에서 다룰 예정입니다.
+      </p>
+      <button class="again" type="button" onclick="again()">
+        하나 더 보내기
+      </button>
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+  var cat = 'serious';
+
+  function setCat(value) {
+    cat = value;
+
+    var seriousLabel = document.getElementById('label-serious');
+    var lightLabel = document.getElementById('label-light');
+
+    seriousLabel.classList.remove('sel');
+    lightLabel.classList.remove('sel');
+
+    if (value === 'serious') {
+      seriousLabel.classList.add('sel');
+    } else {
+      lightLabel.classList.add('sel');
+    }
+  }
+
+  function showToast(message) {
+    var toast = document.getElementById('toast');
+
+    toast.textContent = message;
+    toast.classList.add('show');
+
+    setTimeout(function () {
+      toast.classList.remove('show');
+    }, 1800);
+  }
+
+  function updateCountdown() {
+    var targetDate = new Date('2026-06-25T17:00:00+09:00');
+    var now = new Date();
+    var diff = targetDate.getTime() - now.getTime();
+
+    var countdownEl = document.getElementById('countdown');
+
+    if (!countdownEl) {
+      return;
+    }
+
+    if (diff <= 0) {
+      countdownEl.textContent = 'D-00 00:00:00';
+      return;
+    }
+
+    var totalSeconds = Math.floor(diff / 1000);
+    var days = Math.floor(totalSeconds / (60 * 60 * 24));
+    var hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+    var minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+    var seconds = totalSeconds % 60;
+
+    countdownEl.textContent =
+      'D-' + pad(days) + ' ' + pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
+  }
+
+  function pad(number) {
+    return String(number).padStart(2, '0');
+  }
 
   function send() {
-    var t = document.getElementById('opText').value;
-    if (!t.trim()) { SafeTalk.toast('내용을 적어 주세요'); return; }
+    var textArea = document.getElementById('opText');
+    var text = textArea.value;
     var btn = document.getElementById('sendBtn');
-    btn.disabled = true; btn.textContent = '보내는 중…';
-    SafeTalk.api('submitOpinion', { text: t, category: cat, source: 'presurvey' }).then(function (r) {
-      btn.disabled = false; btn.textContent = '익명으로 제출하기';
-      if (r && r.ok) {
-        document.getElementById('form').style.display = 'none';
-        document.getElementById('doneWrap').classList.add('show');
-      } else {
-        SafeTalk.toast('전송 실패');
-      }
-    }).catch(function(){
-      btn.disabled = false; btn.textContent = '익명으로 제출하기';
-      SafeTalk.toast('전송 실패');
-    });
+
+    if (!text.trim()) {
+      showToast('내용을 적어 주세요');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '보내는 중…';
+
+    /*
+      실제 운영 환경에서 SafeTalk.api를 사용하는 경우,
+      아래 주석 처리된 코드로 교체해서 사용하시면 됩니다.
+
+      SafeTalk.api('submitOpinion', {
+        text: text,
+        category: cat,
+        source: 'presurvey'
+      }).then(function (result) {
+        btn.disabled = false;
+        btn.textContent = '익명으로 제출하기';
+
+        if (result && result.ok) {
+          document.getElementById('form').style.display = 'none';
+          document.getElementById('doneWrap').classList.add('show');
+        } else {
+          showToast('전송에 실패했습니다. 다시 시도해 주세요');
+        }
+      });
+    */
+
+    setTimeout(function () {
+      btn.disabled = false;
+      btn.textContent = '익명으로 제출하기';
+
+      document.getElementById('form').style.display = 'none';
+      document.getElementById('doneWrap').classList.add('show');
+    }, 600);
   }
 
   function again() {
@@ -105,6 +449,9 @@
     document.getElementById('doneWrap').classList.remove('show');
     document.getElementById('form').style.display = 'block';
   }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
 </script>
 </body>
 </html>
