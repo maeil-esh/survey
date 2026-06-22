@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-pop-countdown-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-pop-countdown-combo-1';</script>
 <style>
   :root{
     --navy:#1B2A4A;
@@ -330,8 +330,7 @@
       <span class="liveBadge"><span class="liveDot"></span> LIVE</span>
       <span id="statusText">의견 불러오는 중 · 자동 갱신 중</span>
       <div class="hostControls" aria-label="사회자 컨트롤">
-        <button type="button" id="soundBtn" class="hostBtn" onclick="window.displayEnableSound && window.displayEnableSound()">🔊 소리 켜기</button>
-        <button type="button" id="countdownBtn" class="hostBtn primary" onclick="window.displayStartCountdown && window.displayStartCountdown()">⏱ 10초 카운트</button>
+        <button type="button" id="countdownBtn" class="hostBtn primary" onclick="window.displayStartCountdown && window.displayStartCountdown()">🔊⏱ 10초 카운트</button>
       </div>
     </div>
 
@@ -374,13 +373,13 @@
     <div class="countdownCard" onclick="event.stopPropagation()">
       <div class="countdownLabel">응답 마감까지</div>
       <div id="countdownNumber" class="countdownNumber">10</div>
-      <div class="countdownHint">화면 클릭 시 카운트 종료</div>
+      <div class="countdownHint">화면 클릭 시 카운트 종료 · 시작 시 소리 활성화</div>
     </div>
   </div>
 
-<script src="config.js?v=20260622-display-pop-countdown-1"></script>
-<script src="app.js?v=20260622-display-pop-countdown-1"></script>
-<script src="qrlib.js?v=20260622-display-pop-countdown-1"></script>
+<script src="config.js?v=20260622-display-pop-countdown-combo-1"></script>
+<script src="app.js?v=20260622-display-pop-countdown-combo-1"></script>
+<script src="qrlib.js?v=20260622-display-pop-countdown-combo-1"></script>
 <script>
 (function(){
   var refreshTimer = null;
@@ -394,7 +393,6 @@
   var lastPopAt = 0;
   var lastTallyTotalByItem = {};
   var lastCommentCountByItem = {};
-  var lastCommentSignatureByItem = {};
   var countdownTimer = null;
   var countdownRemain = 10;
 
@@ -407,8 +405,8 @@
   var commentsHardDisabled = false;
   var lastCommentsByItem = {};
   var lastCommentLoadAt = 0;
-  var MIN_DISPLAY_REFRESH_MS = 1000;
-  var COMMENT_EVERY_TICKS = 1;
+  var MIN_DISPLAY_REFRESH_MS = 2600;
+  var COMMENT_EVERY_TICKS = 3;
 
   var CHOICES = [
     {name:'green', keys:['green','agree','full','positive','완전 공감','완전공감','1','g']},
@@ -449,10 +447,10 @@
   }
 
   function updateSoundButton(){
-    var btn = document.getElementById('soundBtn');
+    var btn = document.getElementById('countdownBtn');
     if (!btn) return;
     btn.classList.toggle('on', !!soundEnabled);
-    btn.textContent = soundEnabled ? '🔊 소리 켜짐' : '🔊 소리 켜기';
+    btn.textContent = soundEnabled ? '🔊 켜짐 · ⏱ 10초 카운트' : '🔊⏱ 10초 카운트';
   }
 
   function enableSound(){
@@ -497,16 +495,13 @@
     if (prev != null && total > prev) playPop(false);
   }
 
-  function maybePopForComments(itemId, count, signature){
+  function maybePopForComments(itemId, count){
     itemId = norm(itemId || '');
     if (!itemId) return;
     count = nnum(count);
-    signature = norm(signature || '');
-    var prevCount = lastCommentCountByItem[itemId];
-    var prevSig = lastCommentSignatureByItem[itemId];
+    var prev = lastCommentCountByItem[itemId];
     lastCommentCountByItem[itemId] = count;
-    lastCommentSignatureByItem[itemId] = signature;
-    if (prevCount != null && (count > prevCount || (prevSig && signature && signature !== prevSig))) playPop(false);
+    if (prev != null && count > prev) playPop(false);
   }
 
   function startCountdown(){
@@ -729,8 +724,7 @@
     }).filter(function(row){ return !!row.text; }).slice(-8).reverse();
 
     if (options.mode === 'ok') {
-      var signature = clean.map(function(row){ return row.time + '|' + row.text; }).join('||');
-      maybePopForComments(id, (list || []).length, signature);
+      maybePopForComments(id, (list || []).length);
     }
 
     if (!id) {
