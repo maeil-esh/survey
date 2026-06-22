@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-3line-qr-big-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-pop-countdown-1';</script>
 <style>
   :root{
     --navy:#1B2A4A;
@@ -49,6 +49,7 @@
     color:var(--sub);
     font-size:15px;
     letter-spacing:-.01em;
+    padding-right:190px;
   }
   .liveBadge{
     display:inline-flex;
@@ -65,7 +66,30 @@
   .liveDot{
     width:13px;height:13px;border-radius:50%;background:#fff;display:inline-block;
   }
-  #statusText{font-weight:600;}
+  #statusText{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hostControls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:0 0 auto;
+  }
+  .hostBtn{
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.08);
+    color:#fff;
+    border-radius:999px;
+    padding:8px 13px;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+    min-height:34px;
+    line-height:1;
+    box-shadow:0 5px 12px rgba(0,0,0,.10);
+  }
+  .hostBtn.primary{background:var(--coral);border-color:var(--coral);}
+  .hostBtn.on{background:var(--green);border-color:var(--green);}
+  .hostBtn:active{transform:scale(.97);}
   #setup{position:absolute;left:24px;top:58px;right:24px;z-index:10;}
 
   .qrBox{
@@ -237,6 +261,59 @@
     padding:8px 0;
   }
 
+
+
+  .countdownOverlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(8,14,30,.58);
+    z-index:100;
+    backdrop-filter:blur(2px);
+  }
+  .countdownOverlay.on{display:flex;}
+  .countdownCard{
+    width:min(520px,46vw);
+    min-height:360px;
+    border-radius:34px;
+    background:rgba(255,255,255,.94);
+    color:var(--navy);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 28px 70px rgba(0,0,0,.38);
+    border:8px solid rgba(255,107,91,.22);
+  }
+  .countdownLabel{
+    font-size:32px;
+    font-weight:900;
+    letter-spacing:-.04em;
+    color:var(--coral);
+    margin-bottom:8px;
+  }
+  .countdownNumber{
+    font-size:180px;
+    line-height:.92;
+    font-weight:1000;
+    letter-spacing:-.08em;
+    color:var(--navy);
+    text-shadow:0 5px 0 rgba(27,42,74,.08);
+  }
+  .countdownNumber.done{
+    font-size:88px;
+    letter-spacing:-.05em;
+    color:var(--red);
+  }
+  .countdownHint{
+    margin-top:18px;
+    color:var(--sub);
+    font-size:17px;
+    font-weight:800;
+  }
+
   @media (min-width:1500px){
     .screen{grid-template-rows:42px 196px 278px minmax(124px,1fr);}
     .voteArea{gap:26px;}
@@ -252,6 +329,10 @@
     <div class="topbar">
       <span class="liveBadge"><span class="liveDot"></span> LIVE</span>
       <span id="statusText">의견 불러오는 중 · 자동 갱신 중</span>
+      <div class="hostControls" aria-label="사회자 컨트롤">
+        <button type="button" id="soundBtn" class="hostBtn" onclick="window.displayEnableSound && window.displayEnableSound()">🔊 소리 켜기</button>
+        <button type="button" id="countdownBtn" class="hostBtn primary" onclick="window.displayStartCountdown && window.displayStartCountdown()">⏱ 10초 카운트</button>
+      </div>
     </div>
 
     <div id="setup"></div>
@@ -289,9 +370,17 @@
     </section>
   </main>
 
-<script src="config.js?v=20260622-display-3line-qr-big-1"></script>
-<script src="app.js?v=20260622-display-3line-qr-big-1"></script>
-<script src="qrlib.js?v=20260622-display-3line-qr-big-1"></script>
+  <div id="countdownOverlay" class="countdownOverlay" onclick="window.displayCancelCountdown && window.displayCancelCountdown()" aria-live="assertive">
+    <div class="countdownCard" onclick="event.stopPropagation()">
+      <div class="countdownLabel">응답 마감까지</div>
+      <div id="countdownNumber" class="countdownNumber">10</div>
+      <div class="countdownHint">화면 클릭 시 카운트 종료</div>
+    </div>
+  </div>
+
+<script src="config.js?v=20260622-display-pop-countdown-1"></script>
+<script src="app.js?v=20260622-display-pop-countdown-1"></script>
+<script src="qrlib.js?v=20260622-display-pop-countdown-1"></script>
 <script>
 (function(){
   var refreshTimer = null;
@@ -299,6 +388,15 @@
   var lastItemId = '';
   var commentsAction = 'getLiveComments';
   var tallyAction = 'getTallies';
+
+  var soundEnabled = false;
+  var audioCtx = null;
+  var lastPopAt = 0;
+  var lastTallyTotalByItem = {};
+  var lastCommentCountByItem = {};
+  var lastCommentSignatureByItem = {};
+  var countdownTimer = null;
+  var countdownRemain = 10;
 
   /* GAS 응답 지연 방지용
      - 상태/집계는 빠르게 갱신
@@ -342,6 +440,111 @@
     return [];
   }
 
+  function getAudioContext(){
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    return audioCtx;
+  }
+
+  function updateSoundButton(){
+    var btn = document.getElementById('soundBtn');
+    if (!btn) return;
+    btn.classList.toggle('on', !!soundEnabled);
+    btn.textContent = soundEnabled ? '🔊 소리 켜짐' : '🔊 소리 켜기';
+  }
+
+  function enableSound(){
+    var ctx = getAudioContext();
+    soundEnabled = true;
+    if (ctx && ctx.state === 'suspended') ctx.resume().catch(function(){});
+    updateSoundButton();
+    playPop(true);
+  }
+
+  function playPop(force){
+    if (!soundEnabled && !force) return;
+    var now = Date.now();
+    if (!force && now - lastPopAt < 700) return;
+    lastPopAt = now;
+    var ctx = getAudioContext();
+    if (!ctx) return;
+    try{
+      if (ctx.state === 'suspended') ctx.resume();
+      var t0 = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(760, t0);
+      osc.frequency.exponentialRampToValueAtTime(420, t0 + 0.09);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.16);
+    }catch(e){}
+  }
+
+  function maybePopForTally(itemId, total){
+    itemId = norm(itemId || '');
+    if (!itemId) return;
+    total = nnum(total);
+    var prev = lastTallyTotalByItem[itemId];
+    lastTallyTotalByItem[itemId] = total;
+    if (prev != null && total > prev) playPop(false);
+  }
+
+  function maybePopForComments(itemId, count, signature){
+    itemId = norm(itemId || '');
+    if (!itemId) return;
+    count = nnum(count);
+    signature = norm(signature || '');
+    var prevCount = lastCommentCountByItem[itemId];
+    var prevSig = lastCommentSignatureByItem[itemId];
+    lastCommentCountByItem[itemId] = count;
+    lastCommentSignatureByItem[itemId] = signature;
+    if (prevCount != null && (count > prevCount || (prevSig && signature && signature !== prevSig))) playPop(false);
+  }
+
+  function startCountdown(){
+    enableSound();
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownRemain = 10;
+    var overlay = document.getElementById('countdownOverlay');
+    var num = document.getElementById('countdownNumber');
+    if (!overlay || !num) return;
+    num.classList.remove('done');
+    num.textContent = countdownRemain;
+    overlay.classList.add('on');
+    countdownTimer = setInterval(function(){
+      countdownRemain--;
+      if (countdownRemain <= 0) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        num.classList.add('done');
+        num.textContent = '종료!';
+        playPop(true);
+        setTimeout(function(){ overlay.classList.remove('on'); num.classList.remove('done'); }, 900);
+      } else {
+        num.textContent = countdownRemain;
+      }
+    }, 1000);
+  }
+
+  function cancelCountdown(){
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = null;
+    var overlay = document.getElementById('countdownOverlay');
+    if (overlay) overlay.classList.remove('on');
+  }
+
+  window.displayEnableSound = enableSound;
+  window.displayStartCountdown = startCountdown;
+  window.displayCancelCountdown = cancelCountdown;
+
   function boot(){
     if (window.SafeTalk && SafeTalk.showSetupIfNeeded && SafeTalk.showSetupIfNeeded('setup')) return;
     drawQr();
@@ -372,7 +575,7 @@
       state = state || {};
       renderState(state);
       return loadTallies(state).catch(function(){
-        renderTallies({green:0, amber:0, red:0});
+        renderTallies({green:0, amber:0, red:0}, state && state.itemId);
       }).then(function(){
         var itemChanged = norm(state.itemId || state.id || state.currentId || '') !== lastItemId;
         var shouldLoadComments = itemChanged || refreshSeq === 1 || (refreshSeq % COMMENT_EVERY_TICKS === 0);
@@ -389,7 +592,7 @@
       lastItemId = id;
       commentsFailCount = 0;
       renderComments([], s, {mode:'reset'});
-      renderTallies({green:0, amber:0, red:0});
+      renderTallies({green:0, amber:0, red:0}, id);
     }
     var qt = document.getElementById('questionText');
     var text = norm(s.text || s.question || s.title || '');
@@ -430,17 +633,18 @@
 
   function loadTallies(state){
     if (!state || !state.itemId) {
-      renderTallies({green:0, amber:0, red:0});
+      renderTallies({green:0, amber:0, red:0}, '');
       return Promise.resolve();
     }
     return api(tallyAction, {itemId: state.itemId}).then(function(r){
       if (r && r.ok === false && r.error) throw new Error(r.error);
-      renderTallies(normalizeTallies(r));
+      renderTallies(normalizeTallies(r), state.itemId);
     });
   }
 
-  function renderTallies(t){
+  function renderTallies(t, itemId){
     var total = nnum(t.green) + nnum(t.amber) + nnum(t.red);
+    maybePopForTally(itemId, total);
     setBar('Green', nnum(t.green), total);
     setBar('Amber', nnum(t.amber), total);
     setBar('Red', nnum(t.red), total);
@@ -524,6 +728,11 @@
       return {text:getCommentText(row), time:getCommentTime(row)};
     }).filter(function(row){ return !!row.text; }).slice(-8).reverse();
 
+    if (options.mode === 'ok') {
+      var signature = clean.map(function(row){ return row.time + '|' + row.text; }).join('||');
+      maybePopForComments(id, (list || []).length, signature);
+    }
+
     if (!id) {
       meta.textContent = '';
       el.className = 'commentList';
@@ -573,7 +782,11 @@
     }).join('');
   }
 
-  window.addEventListener('beforeunload', function(){ if (refreshTimer) clearInterval(refreshTimer); });
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') cancelCountdown();
+    if (e.key === '0') startCountdown();
+  });
+  window.addEventListener('beforeunload', function(){ if (refreshTimer) clearInterval(refreshTimer); if (countdownTimer) clearInterval(countdownTimer); });
   boot();
 })();
 </script>
