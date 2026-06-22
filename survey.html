@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-humor-1';</script>
 
 <style>
   :root {
@@ -16,10 +16,18 @@
     --green: #2EB872;
     --muted: #6B7689;
     --bg: #F4F6FA;
+    --line: #D7DEE8;
+    --soft-coral: #FFF1EE;
+    --soft-navy: #EEF3FF;
   }
 
   * {
     box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -38,15 +46,17 @@
   .badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     background: var(--navy);
     color: #fff;
     border-radius: 999px;
-    padding: 7px 14px;
+    padding: 8px 14px;
     font-size: 13px;
     font-weight: bold;
     line-height: 1;
     margin-bottom: 16px;
+    max-width: 100%;
+    flex-wrap: wrap;
   }
 
   #countdown {
@@ -60,42 +70,79 @@
     line-height: 1.35;
     margin: 0 0 10px;
     letter-spacing: -0.4px;
+    word-break: keep-all;
   }
 
   .desc {
     color: var(--muted);
     font-size: 15px;
     line-height: 1.65;
-    margin: 0 0 22px;
+    margin: 0 0 18px;
+    word-break: keep-all;
   }
 
-  .safeBox {
+  .highlight {
+    color: var(--coral);
+    font-weight: 800;
+  }
+
+  .safeBox,
+  .tipBox {
     background: #fff;
     border-radius: 16px;
     padding: 17px 18px;
-    margin: 0 0 24px;
+    margin: 0 0 16px;
     display: flex;
     gap: 12px;
     align-items: flex-start;
     box-shadow: 0 8px 20px rgba(27, 42, 74, 0.06);
   }
 
-  .safeBox .ico {
-    font-size: 18px;
-    line-height: 1.4;
+  .safeBox {
+    margin-bottom: 14px;
   }
 
-  .safeBox strong {
+  .tipBox {
+    background: var(--soft-navy);
+    border: 1px solid rgba(27, 42, 74, 0.08);
+    margin-bottom: 24px;
+  }
+
+  .safeBox .ico,
+  .tipBox .ico {
+    font-size: 20px;
+    line-height: 1.4;
+    flex: 0 0 auto;
+  }
+
+  .safeBox strong,
+  .tipBox strong {
     display: block;
     font-size: 15px;
     margin-bottom: 5px;
   }
 
-  .safeBox p {
+  .safeBox p,
+  .tipBox p {
     margin: 0;
     color: var(--muted);
     font-size: 14px;
     line-height: 1.6;
+    word-break: keep-all;
+  }
+
+  .tipList {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .tipList li {
+    margin: 3px 0;
+    word-break: keep-all;
   }
 
   .label {
@@ -103,17 +150,28 @@
     font-size: 15px;
     font-weight: bold;
     margin: 0 0 9px;
+    line-height: 1.45;
+    word-break: keep-all;
+  }
+
+  .subLabel {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: normal;
+    margin-top: 4px;
+    line-height: 1.45;
   }
 
   textarea {
     width: 100%;
-    border: 1.5px solid #D7DEE8;
+    border: 1.5px solid var(--line);
     border-radius: 12px;
     padding: 13px;
-    font-size: 15px;
+    font-size: 16px;
     font-family: inherit;
     resize: vertical;
-    min-height: 104px;
+    min-height: 122px;
     background: #fff;
     color: var(--navy);
     line-height: 1.5;
@@ -122,6 +180,7 @@
   textarea:focus {
     outline: none;
     border-color: var(--coral);
+    box-shadow: 0 0 0 3px rgba(255, 107, 91, 0.12);
   }
 
   textarea::placeholder {
@@ -141,13 +200,19 @@
   .cat label {
     flex: 1;
     text-align: center;
-    padding: 11px;
-    border: 1.5px solid #D7DEE8;
+    padding: 12px 8px;
+    border: 1.5px solid var(--line);
     border-radius: 10px;
     font-size: 14px;
     cursor: pointer;
     background: #fff;
     color: var(--navy);
+    line-height: 1.35;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: keep-all;
   }
 
   .cat input {
@@ -156,7 +221,7 @@
 
   .cat label.sel {
     border-color: var(--coral);
-    background: #FFF1EE;
+    background: var(--soft-coral);
     color: var(--coral);
     font-weight: bold;
   }
@@ -172,11 +237,24 @@
     font-weight: bold;
     cursor: pointer;
     font-family: inherit;
+    min-height: 54px;
+    line-height: 1.25;
+    box-shadow: 0 10px 18px rgba(255, 107, 91, 0.2);
   }
 
   .send:disabled {
     opacity: 0.65;
     cursor: default;
+    box-shadow: none;
+  }
+
+  .microCopy {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+    margin: 10px 0 0;
+    word-break: keep-all;
   }
 
   .doneWrap {
@@ -193,12 +271,12 @@
   }
 
   .doneWrap .ico {
-    width: 54px;
-    height: 54px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
     background: var(--green);
     color: #fff;
-    font-size: 26px;
+    font-size: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -208,13 +286,15 @@
   .doneWrap h2 {
     font-size: 18px;
     margin: 0 0 6px;
+    line-height: 1.35;
   }
 
   .doneWrap p {
     color: var(--muted);
     font-size: 14px;
     margin: 0 0 18px;
-    line-height: 1.5;
+    line-height: 1.55;
+    word-break: keep-all;
   }
 
   .again {
@@ -227,6 +307,7 @@
     font-weight: bold;
     cursor: pointer;
     font-family: inherit;
+    min-height: 44px;
   }
 
   .toast {
@@ -243,20 +324,38 @@
     pointer-events: none;
     transition: opacity 0.2s ease;
     z-index: 100;
+    text-align: center;
   }
 
   .toast.show {
     opacity: 1;
   }
 
-  @media (max-width: 360px) {
-    .wrap {
-      padding-left: 14px;
-      padding-right: 14px;
-    }
+  button,
+  textarea,
+  input,
+  label {
+    touch-action: manipulation;
+  }
 
-    h1 {
-      font-size: 23px;
+  button {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  h1,
+  .desc,
+  .safeBox p,
+  .tipBox p,
+  .label,
+  .subLabel,
+  .microCopy {
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 380px) {
+    .wrap {
+      padding: 20px 12px 40px;
     }
 
     .badge {
@@ -264,24 +363,40 @@
       padding: 7px 11px;
     }
 
+    h1 {
+      font-size: 22px;
+    }
+
+    .desc {
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .safeBox,
+    .tipBox {
+      padding: 15px 14px;
+      gap: 9px;
+    }
+
+    .cat {
+      gap: 6px;
+    }
+
+    .cat label {
+      font-size: 13px;
+      padding: 11px 6px;
+      min-width: 0;
+    }
+
     .send {
       font-size: 17px;
     }
-  }
 
-  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
-  button,textarea,input,label{touch-action:manipulation;}
-  button{min-height:44px;-webkit-appearance:none;appearance:none;}
-  textarea,input,select{font-size:16px;}
-  h1,.desc,.safeBox p,.label{overflow-wrap:anywhere;}
-  @media (max-width: 380px) {
-    .wrap{padding:20px 12px 40px;}
-    h1{font-size:22px;}
-    .desc{font-size:14px;line-height:1.55;}
-    .safeBox{padding:15px 14px;gap:9px;}
-    .cat{gap:6px;}
-    .cat label{font-size:13px;padding:11px 6px;min-width:0;}
-    .toast{width:calc(100vw - 32px);max-width:360px;text-align:center;bottom:calc(18px + env(safe-area-inset-bottom));}
+    .toast {
+      width: calc(100vw - 32px);
+      max-width: 360px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+    }
   }
 </style>
 </head>
@@ -290,71 +405,87 @@
   <div class="wrap">
 
     <div class="badge">
-      사전 의견 수렴 · <span id="countdown">D-00 00:00:00</span>
+      🗣️ 사전 의견 수렴 · ⏰ <span id="countdown">D-00 00:00:00</span>
     </div>
 
     <div id="setup"></div>
 
-    <h1>워크숍 전, 미리 들려주세요</h1>
+    <h1>CSO에게 한마디! 🎤<br>안전 얘기, 오늘은 잠금해제 🔓</h1>
 
     <p class="desc">
-      곧 있을 ‘CSO와 터놓고 말해요’에서 CSO와 직접 나눌 이야기를<br> 미리 받습니다.<br>
-      당일엔 이 중 일부를 익명으로 공개하고, 다 같이 신호등으로 공감 정도를 표시한 뒤 CSO가 답합니다.
+      현장의 답답함, 궁금증, 바꾸고 싶은 점을 미리 남겨주세요.<br>
+      마음속 안전 알림창이 계속 깜빡인다면 <span class="highlight">지금이 제보 타이밍</span>입니다 🚨
     </p>
 
     <div class="safeBox">
       <div class="ico">🔒</div>
       <div>
-        <strong>완전 익명입니다</strong>
+        <strong>익명 보장! 걱정은 안전모 안에 넣어두세요 🪖</strong>
         <p>
-          이름·부서를 묻지 않으며, 누가 보냈는지 저장하지 않습니다.
-          여러 건 보내셔도 됩니다. 뒤끝 없음!
+          이름·부서를 묻지 않습니다. 누가 보냈는지도 저장하지 않습니다.
+          여러 건 보내셔도 됩니다. 의견은 다다익선입니다 😄
         </p>
+      </div>
+    </div>
+
+    <div class="tipBox">
+      <div class="ico">💡</div>
+      <div>
+        <strong>이런 이야기 환영합니다</strong>
+        <ul class="tipList">
+          <li>✅ “이건 진짜 바뀌었으면 좋겠습니다”</li>
+          <li>✅ “보고했는데 왜 아직 그대로일까요?”</li>
+          <li>✅ “현장은 알지만 회의실은 모를 수도 있는 이야기”</li>
+          <li>✅ “CSO에게 꼭 물어보고 싶은 한 방 질문” 🎯</li>
+        </ul>
       </div>
     </div>
 
     <div id="form">
       <div class="field">
         <label class="label" for="opText">
-          CSO에게 묻고 싶은 것 / 현장에서 바꾸고 싶은 안전 이슈
+          CSO에게 묻고 싶은 것 / 현장에서 바꾸고 싶은 안전 이슈 📝
+          <span class="subLabel">짧게 써도 됩니다. 장문도 환영입니다. 속 시원함은 덤입니다 😎</span>
         </label>
 
         <textarea
           id="opText"
-          placeholder="예) 보고했지만 끝내 바뀌지 않았던 경험이 있나요? / 인력·예산이 늘 부족합니다..."
+          placeholder="예) 이 위험요인은 다들 알고 있는데 왜 매번 그대로일까요? 🤔\n예) 안전은 중요하지만 인력·시간·예산이 부족할 때는 어떻게 해야 하나요? ⏳\n예) 보고서보다 현장 조치가 먼저였으면 좋겠습니다 🛠️"
         ></textarea>
       </div>
 
       <div class="field">
-        <div class="label">이 의견의 톤</div>
+        <div class="label">이 의견의 톤을 골라주세요 🎚️</div>
 
         <div class="cat">
           <label id="label-serious" class="sel" onclick="setCat('serious')">
             <input type="radio" name="cat" value="serious" checked>
-            진지하게
+            😐 진지하게<br>정면승부
           </label>
 
           <label id="label-light" onclick="setCat('light')">
             <input type="radio" name="cat" value="light">
-            가볍게
+            😄 가볍게<br>하지만 핵심은 콕
           </label>
         </div>
       </div>
 
       <button id="sendBtn" class="send" type="button" onclick="send()">
-        익명으로 제출하기
+        🚀 익명으로 발사하기
       </button>
+      <p class="microCopy">전송 후에도 하나 더 보낼 수 있습니다. 의견 창고는 넉넉합니다 📦</p>
     </div>
 
     <div id="doneWrap" class="doneWrap">
       <div class="ico">✓</div>
-      <h2>의견이 접수되었습니다</h2>
+      <h2>의견 접수 완료! 🎉</h2>
       <p>
         보내주신 의견은 익명으로 모아<br>
-        ‘CSO와 터놓고 말해요’에서 다룰 예정입니다.
+        ‘CSO와 터놓고 말해요’에서 다룰 예정입니다.<br>
+        안전 신호 하나 추가되었습니다 🚦
       </p>
       <button class="again" type="button" onclick="again()">
-        하나 더 보내기
+        ✍️ 하나 더 보내기
       </button>
     </div>
 
@@ -362,8 +493,8 @@
 
   <div id="toast" class="toast"></div>
 
-<script src="config.js?v=20260622-mobile-cache-1"></script>
-<script src="app.js?v=20260622-mobile-cache-1"></script>
+<script src="config.js?v=20260622-mobile-humor-1"></script>
+<script src="app.js?v=20260622-mobile-humor-1"></script>
 <script>
   var cat = 'serious';
 
@@ -432,12 +563,12 @@
     var btn = document.getElementById('sendBtn');
 
     if (!text.trim()) {
-      showToast('내용을 적어 주세요');
+      showToast('내용이 비었습니다 👀 한 줄이라도 남겨주세요');
       return;
     }
 
     btn.disabled = true;
-    btn.textContent = '보내는 중…';
+    btn.textContent = '익명 로켓 발사 중… 🚀';
 
     SafeTalk.api('submitOpinion', {
       text: text,
@@ -445,18 +576,18 @@
       source: 'presurvey'
     }).then(function (result) {
       btn.disabled = false;
-      btn.textContent = '익명으로 제출하기';
+      btn.textContent = '🚀 익명으로 발사하기';
 
       if (result && result.ok) {
         document.getElementById('form').style.display = 'none';
         document.getElementById('doneWrap').classList.add('show');
       } else {
-        showToast('전송에 실패했습니다. 다시 시도해 주세요');
+        showToast('전송 실패 😢 다시 한 번 눌러주세요');
       }
     }).catch(function () {
       btn.disabled = false;
-      btn.textContent = '익명으로 제출하기';
-      showToast('전송에 실패했습니다. 다시 시도해 주세요');
+      btn.textContent = '🚀 익명으로 발사하기';
+      showToast('전송 실패 😢 다시 한 번 눌러주세요');
     });
   }
 
