@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-pop-countdown-combo-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-pop-countdown-last3-1';</script>
 <style>
   :root{
     --navy:#1B2A4A;
@@ -377,9 +377,9 @@
     </div>
   </div>
 
-<script src="config.js?v=20260622-display-pop-countdown-combo-1"></script>
-<script src="app.js?v=20260622-display-pop-countdown-combo-1"></script>
-<script src="qrlib.js?v=20260622-display-pop-countdown-combo-1"></script>
+<script src="config.js?v=20260622-display-pop-countdown-last3-1"></script>
+<script src="app.js?v=20260622-display-pop-countdown-last3-1"></script>
+<script src="qrlib.js?v=20260622-display-pop-countdown-last3-1"></script>
 <script>
 (function(){
   var refreshTimer = null;
@@ -395,7 +395,6 @@
   var lastCommentCountByItem = {};
   var countdownTimer = null;
   var countdownRemain = 10;
-  var SOUND_STYLE = 'double';
 
   /* GAS 응답 지연 방지용
      - 상태/집계는 빠르게 갱신
@@ -472,28 +471,18 @@
     try{
       if (ctx.state === 'suspended') ctx.resume();
       var t0 = ctx.currentTime;
-
-      function tone(start, f1, f2, peak, dur){
-        var osc = ctx.createOscillator();
-        var gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(f1, start);
-        osc.frequency.exponentialRampToValueAtTime(f2, start + dur * 0.62);
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(peak, start + 0.012);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + dur + 0.02);
-      }
-
-      if (SOUND_STYLE === 'double') {
-        tone(t0, 820, 520, 0.16, 0.11);
-        tone(t0 + 0.085, 1040, 650, 0.12, 0.10);
-      } else {
-        tone(t0, 760, 420, 0.18, 0.14);
-      }
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(760, t0);
+      osc.frequency.exponentialRampToValueAtTime(420, t0 + 0.09);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.16);
     }catch(e){}
   }
 
@@ -536,6 +525,9 @@
         setTimeout(function(){ overlay.classList.remove('on'); num.classList.remove('done'); }, 900);
       } else {
         num.textContent = countdownRemain;
+        if (countdownRemain <= 3) {
+          playPop(true);
+        }
       }
     }, 1000);
   }
