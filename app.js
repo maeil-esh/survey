@@ -2,8 +2,13 @@
   'use strict';
 
   var cfg = window.SAFE_TALK_CONFIG || {};
-  var FALLBACK_BUILD_VERSION = '20260622-mobile-cache-1';
+  var FALLBACK_BUILD_VERSION = '20260622-gas-delay-2';
   var memoryStore = {};
+  var pendingRequests = {};
+
+  var DEFAULT_TIMEOUT_MS = 30000;
+  var POLL_TIMEOUT_MS = 18000;
+  var WRITE_TIMEOUT_MS = 45000;
 
   function getBuildVersion() {
     return String(window.SAFE_TALK_BUILD_VERSION || cfg.BUILD_VERSION || FALLBACK_BUILD_VERSION);
@@ -74,18 +79,118 @@
     if (url) storageSet('SAFE_TALK_GAS_API_URL', String(url).trim());
   }
 
+  function simpleHash(input) {
+    var str = String(input || '');
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+    }
+    return (h >>> 0).toString(36);
+  }
+
+  function randomId(prefix) {
+    return String(prefix || 'r') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 12);
+  }
+
+  function isPollAction(action) {
+    return action === 'getRevealState' || action === 'getDisplayState';
+  }
+
+  function isWriteAction(action) {
+    return action === 'submitOpinion' ||
+      action === 'castVote' ||
+      action === 'adoptOpinion' ||
+      action === 'dismissOpinion' ||
+      action === 'addCustomCurated' ||
+      action === 'moveCurated' ||
+      action === 'deleteCurated' ||
+      action === 'setCurrentReveal' ||
+      action === 'nextReveal' ||
+      action === 'prevReveal' ||
+      action === 'toggleVoting' ||
+      action === 'resetTallies' ||
+      action === 'resetAll';
+  }
+
+  function stableStringify(obj) {
+    obj = obj || {};
+    var keys = Object.keys(obj).sort();
+    var out = [];
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (k === 'callback' || k === '_ts' || k === '_v') continue;
+      out.push(k + '=' + String(obj[k]));
+    }
+    return out.join('&');
+  }
+
+  function normalizeError(err) {
+    var msg = String((err && err.message) ? err.message : (err || ''));
+    if (msg.indexOf('응답 지연') >= 0) return 'GAS 서버 응답이 지연되고 있습니다. 자동 갱신은 계속됩니다.';
+    if (msg.indexOf('호출 실패') >= 0) return 'GAS 연결에 실패했습니다. 배포 URL과 권한을 확인하세요.';
+    return msg || '처리 중 오류가 발생했습니다.';
+  }
+
+  function prepareParams(action, params, opts) {
+    params = params || {};
+    opts = opts || {};
+
+    var out = {};
+    Object.keys(params).forEach(function (k) {
+      var v = params[k];
+      if (v === undefined || v === null) return;
+      out[k] = String(v);
+    });
+
+    if (action === 'submitOpinion') {
+      var text = String(out.text || '').trim();
+      var category = String(out.category || 'serious');
+      var source = String(out.source || 'live');
+      var contentKey = 'SAFE_TALK_PENDING_SUBMIT_' + simpleHash(source + '|' + category + '|' + text);
+      var requestId = out.requestId || storageGet(contentKey);
+      if (!requestId) {
+        requestId = randomId('op');
+        storageSet(contentKey, requestId);
+      }
+      out.requestId = requestId;
+      opts.__submitContentKey = contentKey;
+    }
+
+    return out;
+  }
+
+  function getTimeout(action, opts) {
+    if (opts && opts.timeout) return opts.timeout;
+    if (isPollAction(action)) return POLL_TIMEOUT_MS;
+    if (isWriteAction(action)) return WRITE_TIMEOUT_MS;
+    return DEFAULT_TIMEOUT_MS;
+  }
+
+  function getDedupeKey(action, params, opts) {
+    if (opts && opts.noDedupe) return '';
+    if (isPollAction(action)) return 'poll::' + action + '::' + stableStringify(params);
+    return '';
+  }
+
   function jsonp(action, params, opts) {
     opts = opts || {};
-    params = params || {};
+    params = prepareParams(action, params || {}, opts);
 
     var base = getGasUrl();
     if (!base) {
       return Promise.reject(new Error('GAS_API_URL이 설정되지 않았습니다. config.js에 GAS /exec URL을 입력하세요.'));
     }
 
-    return new Promise(function (resolve, reject) {
+    var dedupeKey = getDedupeKey(action, params, opts);
+    if (dedupeKey && pendingRequests[dedupeKey]) {
+      return pendingRequests[dedupeKey];
+    }
+
+    var promise = new Promise(function (resolve, reject) {
       var cbName = '__safeTalkCb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
       var timer;
+      var finished = false;
       var script = document.createElement('script');
 
       function cleanup() {
@@ -95,7 +200,12 @@
       }
 
       window[cbName] = function (res) {
+        if (finished) return;
+        finished = true;
         cleanup();
+        if (action === 'submitOpinion' && res && res.ok && opts.__submitContentKey) {
+          storageRemove(opts.__submitContentKey);
+        }
         resolve(res || {});
       };
 
@@ -112,6 +222,8 @@
       });
 
       script.onerror = function () {
+        if (finished) return;
+        finished = true;
         cleanup();
         reject(new Error('GAS API 호출 실패: 배포 권한, /exec URL, 네트워크를 확인하세요.'));
       };
@@ -120,10 +232,20 @@
       document.head.appendChild(script);
 
       timer = setTimeout(function () {
+        if (finished) return;
+        finished = true;
         cleanup();
         reject(new Error('GAS API 응답 지연: 잠시 후 다시 시도하세요.'));
-      }, opts.timeout || 12000);
+      }, getTimeout(action, opts));
     });
+
+    if (dedupeKey) {
+      pendingRequests[dedupeKey] = promise;
+      promise.then(function () { delete pendingRequests[dedupeKey]; })
+        .catch(function () { delete pendingRequests[dedupeKey]; });
+    }
+
+    return promise;
   }
 
   function esc(s) {
@@ -145,14 +267,14 @@
     el.__tt = setTimeout(function () {
       el.classList.remove('on');
       el.classList.remove('show');
-    }, 2200);
+    }, 2400);
   }
 
   function getClientId() {
     var k = 'SAFE_TALK_CLIENT_ID';
     var v = storageGet(k);
     if (!v) {
-      v = 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 12);
+      v = randomId('c');
       storageSet(k, v);
     }
     return v;
@@ -208,10 +330,10 @@
     storageSet('SAFE_TALK_ADMIN_KEY', String(v || ''));
   }
 
-  function adminApi(action, params) {
+  function adminApi(action, params, opts) {
     params = params || {};
     params.adminKey = getAdminKey();
-    return jsonp(action, params);
+    return jsonp(action, params, opts);
   }
 
   window.SafeTalk = {
@@ -221,6 +343,7 @@
     adminApi: adminApi,
     esc: esc,
     toast: toast,
+    normalizeError: normalizeError,
     getClientId: getClientId,
     voted: voted,
     markVoted: markVoted,

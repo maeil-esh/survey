@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-gas-delay-2';</script>
 <style>
   :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--amber:#FFC857;--red:#E84855;--bg:#F4F6FA;--muted:#6B7689;}
   *{box-sizing:border-box;}
@@ -91,12 +91,13 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="config.js?v=20260622-mobile-cache-1"></script>
-<script src="app.js?v=20260622-mobile-cache-1"></script>
+<script src="config.js?v=20260622-gas-delay-2"></script>
+<script src="app.js?v=20260622-gas-delay-2"></script>
 <script>
   var curId = null;
   var lastServerTime = 0;
   var isSendingVote = false;
+  var refreshInFlight = false;
 
   var labels = document.querySelectorAll('#cat label');
   for (var i=0;i<labels.length;i++){
@@ -113,13 +114,16 @@
 
   function refresh(){
     if (SafeTalk.showSetupIfNeeded('setup')) return;
+    if (refreshInFlight) return;
+    refreshInFlight = true;
     SafeTalk.api('getRevealState').then(function(s){
+      refreshInFlight = false;
       curId = s.itemId;
       lastServerTime = s.serverTime || Date.now();
       var qcard = document.getElementById('qcard');
       var qEl = document.getElementById('q');
       var liveMeta = document.getElementById('liveMeta');
-      liveMeta.textContent = '실시간 연결됨 · 1초 자동 갱신';
+      liveMeta.textContent = '실시간 연결됨 · 자동 갱신 중';
 
       if (!s.itemId){
         document.getElementById('pno').textContent = '';
@@ -142,7 +146,8 @@
       document.getElementById('closed').style.display = (!open)        ? 'block' : 'none';
       setButtonState(false);
     }).catch(function(err){
-      document.getElementById('liveMeta').textContent = err.message;
+      refreshInFlight = false;
+      document.getElementById('liveMeta').textContent = SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : err.message;
     });
   }
 
@@ -166,10 +171,10 @@
       }
       isSendingVote = false;
       refresh();
-    }).catch(function(){
+    }).catch(function(err){
       SafeTalk.clearVoted(curId);
       isSendingVote = false;
-      SafeTalk.toast('네트워크 오류: 다시 눌러 주세요');
+      SafeTalk.toast(SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : '네트워크 오류: 다시 눌러 주세요');
       refresh();
     });
   }
@@ -188,17 +193,17 @@
         document.getElementById('opText').value='';
         SafeTalk.toast('익명으로 전송됐어요 🔒');
       } else {
-        SafeTalk.toast('전송 실패');
+        SafeTalk.toast('전송 실패: 다시 눌러 주세요');
       }
-    }).catch(function(){
+    }).catch(function(err){
       btn.disabled = false;
       btn.textContent = '익명으로 보내기';
-      SafeTalk.toast('전송 실패');
+      SafeTalk.toast(SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : '전송 실패');
     });
   }
 
   refresh();
-  setInterval(refresh, (SafeTalk.cfg.REFRESH_MS_VOTE || 1000));
+  setInterval(refresh, (SafeTalk.cfg.REFRESH_MS_VOTE || 2000));
 </script>
 </body>
 </html>

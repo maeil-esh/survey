@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-humor-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-gas-delay-2';</script>
 
 <style>
   :root {
@@ -450,7 +450,7 @@
 
         <textarea
           id="opText"
-          placeholder="예) 이 위험요인은 다들 알고 있는데 왜 매번 그대로일까요? 🤔예) 안전은 중요하지만 인력·시간·예산이 부족할 때는 어떻게 해야 하나요? ⏳예) 보고서보다 현장 조치가 먼저였으면 좋겠습니다 🛠️"
+          placeholder="예) 이 위험요인은 다들 알고 있는데 왜 매번 그대로일까요? 🤔\n예) 안전은 중요하지만 인력·시간·예산이 부족할 때는 어떻게 해야 하나요? ⏳\n예) 보고서보다 현장 조치가 먼저였으면 좋겠습니다 🛠️"
         ></textarea>
       </div>
 
@@ -493,8 +493,8 @@
 
   <div id="toast" class="toast"></div>
 
-<script src="config.js?v=20260622-mobile-humor-1"></script>
-<script src="app.js?v=20260622-mobile-humor-1"></script>
+<script src="config.js?v=20260622-gas-delay-2"></script>
+<script src="app.js?v=20260622-gas-delay-2"></script>
 <script>
   var cat = 'serious';
 
@@ -582,12 +582,13 @@
         document.getElementById('form').style.display = 'none';
         document.getElementById('doneWrap').classList.add('show');
       } else {
-        showToast('전송 실패 😢 다시 한 번 눌러주세요');
+        showToast('서버가 바빠요 😢 같은 내용은 중복 저장을 막고 있으니 다시 한 번 눌러주세요');
       }
-    }).catch(function () {
+    }).catch(function (err) {
       btn.disabled = false;
       btn.textContent = '🚀 익명으로 발사하기';
-      showToast('전송 실패 😢 다시 한 번 눌러주세요');
+      var msg = SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : '서버가 바빠요 😢 같은 내용은 중복 저장을 막고 있으니 다시 한 번 눌러주세요';
+      showToast(msg);
     });
   }
 

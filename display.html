@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-gas-delay-2';</script>
 <style>
   :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--amber:#FFC857;--red:#E84855;--muted:#8A93A6;}
   *{box-sizing:border-box;}
@@ -101,11 +101,12 @@
   <div class="cap">참여 QR</div>
 </div>
 
-<script src="config.js?v=20260622-mobile-cache-1"></script>
-<script src="app.js?v=20260622-mobile-cache-1"></script>
-<script src="qrlib.js?v=20260622-mobile-cache-1"></script>
+<script src="config.js?v=20260622-gas-delay-2"></script>
+<script src="app.js?v=20260622-gas-delay-2"></script>
+<script src="qrlib.js?v=20260622-gas-delay-2"></script>
 <script>
   var qrDrawn = false;
+  var refreshInFlight = false;
 
   function drawQrOnce(){
     if (qrDrawn) return;
@@ -117,13 +118,16 @@
 
   function refresh(){
     if (SafeTalk.showSetupIfNeeded('setup')) return;
+    if (refreshInFlight) return;
+    refreshInFlight = true;
     drawQrOnce();
     SafeTalk.api('getDisplayState').then(function(s){
+      refreshInFlight = false;
       var waitArea = document.getElementById('waitArea');
       var liveArea = document.getElementById('liveArea');
 
       if (!s.itemId){
-        document.getElementById('pno').textContent = '실시간 대기 중 · 1초 자동 갱신';
+        document.getElementById('pno').textContent = '실시간 대기 중 · 자동 갱신 중';
         waitArea.style.display = 'block';
         liveArea.style.display = 'none';
         document.getElementById('qrCorner').style.display = 'none';
@@ -132,7 +136,7 @@
         liveArea.style.display = 'block';
         document.getElementById('qrCorner').style.display = 'block';
         document.getElementById('pno').textContent =
-          '의견 '+s.index+' / '+s.total + (s.votingOpen ? '  ·  응답 중' : '  ·  응답 종료') + '  ·  1초 자동 갱신';
+          '의견 '+s.index+' / '+s.total + (s.votingOpen ? '  ·  응답 중' : '  ·  응답 종료') + '  ·  자동 갱신 중';
         document.getElementById('q').textContent = s.text;
 
         var t = s.tally || { green:0, yellow:0, red:0 };
@@ -157,7 +161,8 @@
         }).join('');
       }
     }).catch(function(err){
-      document.getElementById('pno').textContent = err.message;
+      refreshInFlight = false;
+      document.getElementById('pno').textContent = SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : err.message;
     });
   }
 
@@ -168,7 +173,7 @@
   }
 
   refresh();
-  setInterval(refresh, (SafeTalk.cfg.REFRESH_MS_DISPLAY || 1000));
+  setInterval(refresh, (SafeTalk.cfg.REFRESH_MS_DISPLAY || 1500));
 </script>
 </body>
 </html>

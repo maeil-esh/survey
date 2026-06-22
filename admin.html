@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-gas-delay-2';</script>
 <style>
   :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--red:#E84855;--amber:#FFC857;--muted:#6B7689;--bg:#F4F6FA;}
   *{box-sizing:border-box;}
@@ -159,12 +159,13 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="config.js?v=20260622-mobile-cache-1"></script>
-<script src="app.js?v=20260622-mobile-cache-1"></script>
-<script src="qrlib.js?v=20260622-mobile-cache-1"></script>
+<script src="config.js?v=20260622-gas-delay-2"></script>
+<script src="app.js?v=20260622-gas-delay-2"></script>
+<script src="qrlib.js?v=20260622-gas-delay-2"></script>
 <script>
   var qrDrawn = false;
   var refreshTimer = null;
+  var adminRefreshInFlight = false;
 
   function boot(){
     if (SafeTalk.showSetupIfNeeded('setup')) return;
@@ -179,7 +180,7 @@
       document.getElementById('adminApp').style.display = 'block';
       drawQrOnce();
       refreshAll();
-      refreshTimer = setInterval(refreshAll, (SafeTalk.cfg.REFRESH_MS_ADMIN || 2000));
+      refreshTimer = setInterval(refreshAll, (SafeTalk.cfg.REFRESH_MS_ADMIN || 2500));
     }
   }
 
@@ -218,13 +219,13 @@
   }
 
   function pullState(){
-    SafeTalk.api('getRevealState').then(function(s){
+    return SafeTalk.api('getRevealState').then(function(s){
       document.getElementById('state').innerHTML =
         (s.itemId ? ('현재 공개: <b>의견 '+s.index+' / '+s.total+'</b>') : '아직 공개된 의견 없음') +
         '&nbsp;&nbsp;·&nbsp;&nbsp;' + (s.votingOpen ? '🟢 응답 열림' : '🔴 응답 닫힘') +
         '<small>' + (s.text ? SafeTalk.esc(s.text) : '') + '</small>';
     }).catch(function(err){
-      document.getElementById('state').textContent = err.message;
+      document.getElementById('state').textContent = SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : err.message;
     });
   }
 
@@ -233,7 +234,7 @@
   function setVoting(o){ SafeTalk.adminApi('toggleVoting', { open: o ? 'true':'false' }).then(refreshAll); }
 
   function loadInbox(){
-    SafeTalk.adminApi('getPreSurveyInbox').then(function(r){
+    return SafeTalk.adminApi('getPreSurveyInbox').then(function(r){
       if (!r || !r.ok) { authFail(r); return; }
       var list = r.data || [];
       document.getElementById('inboxCount').textContent = list.length ? ('('+list.length+')') : '';
@@ -249,7 +250,7 @@
                '<button class="skip" onclick="skip('+o.rowIndex+')">건너뛰기</button>'+ 
                '</div></div>';
       }).join('');
-    }).catch(function(err){ document.getElementById('inboxList').innerHTML = '<div class="empty">'+SafeTalk.esc(err.message)+'</div>'; });
+    }).catch(function(err){ document.getElementById('inboxList').innerHTML = '<div class="empty">'+SafeTalk.esc(SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : err.message)+'</div>'; });
   }
 
   function adopt(rowIndex){
@@ -261,7 +262,7 @@
   }
 
   function loadCurated(){
-    Promise.all([
+    return Promise.all([
       SafeTalk.api('getRevealState'),
       SafeTalk.adminApi('getCuratedList')
     ]).then(function(res){
@@ -325,7 +326,15 @@
     }
   }
 
-  function refreshAll(){ pullState(); loadInbox(); loadCurated(); }
+  function refreshAll(){
+    if (adminRefreshInFlight) return;
+    adminRefreshInFlight = true;
+    Promise.all([pullState(), loadInbox(), loadCurated()]).then(function(){
+      adminRefreshInFlight = false;
+    }).catch(function(){
+      adminRefreshInFlight = false;
+    });
+  }
   boot();
 </script>
 </body>
