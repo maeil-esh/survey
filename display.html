@@ -395,6 +395,7 @@
   var lastCommentCountByItem = {};
   var countdownTimer = null;
   var countdownRemain = 10;
+  var SOUND_STYLE = 'double';
 
   /* GAS 응답 지연 방지용
      - 상태/집계는 빠르게 갱신
@@ -471,18 +472,28 @@
     try{
       if (ctx.state === 'suspended') ctx.resume();
       var t0 = ctx.currentTime;
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(760, t0);
-      osc.frequency.exponentialRampToValueAtTime(420, t0 + 0.09);
-      gain.gain.setValueAtTime(0.0001, t0);
-      gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t0);
-      osc.stop(t0 + 0.16);
+
+      function tone(start, f1, f2, peak, dur){
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f1, start);
+        osc.frequency.exponentialRampToValueAtTime(f2, start + dur * 0.62);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(peak, start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + dur + 0.02);
+      }
+
+      if (SOUND_STYLE === 'double') {
+        tone(t0, 820, 520, 0.16, 0.11);
+        tone(t0 + 0.085, 1040, 650, 0.12, 0.10);
+      } else {
+        tone(t0, 760, 420, 0.18, 0.14);
+      }
     }catch(e){}
   }
 
