@@ -7,173 +7,494 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION = '20260622-gas-delay-2';</script>
+<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-bigger-current-comments-1';</script>
 <style>
-  :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--amber:#FFC857;--red:#E84855;--muted:#8A93A6;}
-  *{box-sizing:border-box;}
-  body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;margin:0;background:var(--navy);color:#fff;overflow-x:hidden;}
-  .wrap{padding:30px 40px;}
-  .top{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
-  .live{background:var(--coral);color:#fff;font-size:15px;font-weight:bold;padding:6px 14px;border-radius:20px;letter-spacing:1px;}
-  .pno{color:var(--muted);font-size:16px;}
-  .qbox{background:rgba(255,255,255,.05);border:1px solid #2c3c61;border-radius:18px;padding:26px 30px;margin:14px 0 30px;min-height:72px;display:flex;align-items:center;}
-  .qbox p{font-size:30px;font-weight:bold;line-height:1.4;margin:0;word-break:keep-all;}
-  .qbox.wait{color:var(--muted);font-weight:normal;font-size:20px;}
-  .bars{display:flex;flex-direction:column;gap:14px;margin-bottom:34px;}
-  .bar{display:flex;align-items:center;gap:18px;}
-  .blabel{width:190px;font-size:18px;font-weight:bold;}
-  .track{flex:1;background:rgba(255,255,255,.08);border-radius:14px;height:48px;overflow:hidden;}
-  .fill{height:100%;border-radius:14px;transition:width .35s ease;min-width:3px;}
-  .fg{background:var(--green);} .fa{background:var(--amber);} .fr{background:var(--red);}
-  .cnt{width:140px;font-size:19px;font-weight:bold;text-align:right;}
-  .opwrap h2{font-size:20px;margin:0 0 16px;color:var(--coral);}
-  .cards{display:flex;flex-wrap:wrap;gap:13px;}
-  .card{background:#26365C;border-radius:14px;padding:14px 16px;max-width:340px;font-size:15px;line-height:1.5;border:1px solid #34466e;}
-  .card.light{background:#3a2b2b;border-color:#5a3b3b;}
-  .tag{font-size:11px;color:var(--muted);display:block;margin-top:6px;}
-  .empty{color:var(--muted);font-size:16px;}
-  .qrCorner{position:fixed;top:24px;right:28px;background:#fff;border-radius:16px;padding:14px 16px 10px;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,.35);z-index:10;display:none;}
-  .qrCorner svg{display:block;width:108px;height:108px;}
-  .qrCorner .cap{color:var(--navy);font-size:12.5px;font-weight:bold;margin-top:6px;}
-  .qrBig{display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff;border-radius:22px;padding:26px 30px 20px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
-  .qrBig svg{width:230px;height:230px;}
-  .qrBig .cap{color:var(--navy);font-size:16px;font-weight:bold;}
-  .waitRow{display:flex;align-items:center;gap:34px;}
-  #setup{color:#1B2A4A;max-width:780px;}
-
-  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
-  .qbox p,.card,.empty{overflow-wrap:anywhere;}
-  @media (max-width: 768px){
-    .wrap{padding:20px 14px 36px;}
-    .top{gap:10px;flex-wrap:wrap;}
-    .live{font-size:13px;padding:5px 12px;}
-    .pno{font-size:14px;}
-    .waitRow{flex-direction:column;align-items:stretch;gap:16px;}
-    .qbox{padding:18px 16px;margin:12px 0 20px;}
-    .qbox p{font-size:22px;line-height:1.42;}
-    .qbox.wait{font-size:16px;}
-    .qrBig{padding:18px 16px;}
-    .qrBig svg{width:180px;height:180px;}
-    .qrCorner{top:auto;right:12px;bottom:12px;padding:10px;}
-    .qrCorner svg{width:86px;height:86px;}
-    .bar{display:grid;grid-template-columns:1fr auto;gap:8px 10px;background:rgba(255,255,255,.03);border-radius:14px;padding:10px;}
-    .blabel{width:auto;font-size:15px;}
-    .cnt{width:auto;font-size:15px;}
-    .track{grid-column:1 / -1;height:34px;}
-    .opwrap h2{font-size:17px;}
-    .cards{display:block;}
-    .card{max-width:none;width:100%;margin-bottom:10px;font-size:14px;}
+  :root{
+    --navy:#1B2A4A;
+    --panel:#273553;
+    --panel2:#303E5F;
+    --line:rgba(255,255,255,.08);
+    --text:#FFFFFF;
+    --sub:#AEB9D1;
+    --coral:#FF6B5B;
+    --green:#2EB872;
+    --amber:#FFC857;
+    --red:#E84855;
   }
-  @media (max-width: 420px){
-    .qbox p{font-size:19px;}
-    .qrBig svg{width:150px;height:150px;}
+  *{box-sizing:border-box;}
+  html,body{width:100%;min-height:100%;margin:0;overflow:hidden;}
+  body{
+    font-family:'Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
+    background:var(--navy);
+    color:var(--text);
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
+  .screen{
+    width:100vw;
+    height:100vh;
+    min-width:1100px;
+    min-height:620px;
+    padding:14px 24px 20px;
+    display:grid;
+    grid-template-rows:42px 138px 258px minmax(120px,1fr);
+    gap:10px;
+    position:relative;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    min-height:34px;
+    color:var(--sub);
+    font-size:15px;
+    letter-spacing:-.01em;
+  }
+  .liveBadge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--coral);
+    color:#fff;
+    border-radius:999px;
+    padding:8px 14px;
+    font-size:14px;
+    font-weight:900;
+    line-height:1;
+  }
+  .liveDot{
+    width:13px;height:13px;border-radius:50%;background:#fff;display:inline-block;
+  }
+  #statusText{font-weight:600;}
+  #setup{position:absolute;left:24px;top:58px;right:24px;z-index:10;}
+
+  .qrBox{
+    position:absolute;
+    top:14px;
+    right:0;
+    width:134px;
+    height:154px;
+    border-radius:14px 0 0 14px;
+    background:#fff;
+    color:var(--navy);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    z-index:4;
+    box-shadow:0 10px 26px rgba(0,0,0,.18);
+  }
+  .qrBox svg{width:90px;height:90px;display:block;}
+  .qrLabel{font-size:12px;font-weight:900;color:var(--navy);}
+
+  .questionCard{
+    width:calc(100vw - 188px);
+    min-width:900px;
+    max-width:none;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:rgba(255,255,255,.055);
+    padding:18px 30px;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+  }
+  .questionText{
+    font-size:clamp(31px,2.05vw,43px);
+    line-height:1.22;
+    font-weight:900;
+    letter-spacing:-.04em;
+    word-break:keep-all;
+    overflow-wrap:anywhere;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    text-shadow:0 2px 0 rgba(0,0,0,.12);
+  }
+  .questionText.empty{
+    color:rgba(255,255,255,.56);
+    font-size:30px;
+    font-weight:800;
+  }
+
+  .voteArea{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:22px;
+    padding-top:2px;
+  }
+  .voteRow{
+    display:grid;
+    grid-template-columns:184px minmax(400px,1fr) 132px;
+    align-items:center;
+    gap:24px;
+    min-height:60px;
+  }
+  .voteLabel{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:21px;
+    font-weight:900;
+    letter-spacing:-.03em;
+    white-space:nowrap;
+    color:#fff;
+  }
+  .dot{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    flex:0 0 20px;
+    box-shadow:0 0 16px currentColor;
+  }
+  .dot.green{background:var(--green);color:var(--green);}
+  .dot.amber{background:var(--amber);color:var(--amber);}
+  .dot.red{background:var(--red);color:var(--red);}
+  .barTrack{
+    height:58px;
+    border-radius:14px;
+    background:rgba(255,255,255,.09);
+    overflow:hidden;
+    position:relative;
+  }
+  .barFill{
+    height:100%;
+    width:0%;
+    border-radius:14px;
+    transition:width .35s ease;
+    box-shadow:inset -16px 0 24px rgba(255,255,255,.14);
+  }
+  .barFill.green{background:linear-gradient(90deg,rgba(46,184,114,.95),rgba(76,217,142,.98));}
+  .barFill.amber{background:linear-gradient(90deg,rgba(255,200,87,.95),rgba(255,218,105,.98));}
+  .barFill.red{background:linear-gradient(90deg,rgba(232,72,85,.96),rgba(255,91,103,.98));}
+  .voteValue{
+    text-align:right;
+    font-size:21px;
+    font-weight:900;
+    letter-spacing:-.02em;
+    white-space:nowrap;
+  }
+
+  .comments{
+    padding-top:2px;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .commentTitle{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:25px;
+    font-weight:900;
+    color:var(--coral);
+    margin:2px 0 14px;
+    letter-spacing:-.03em;
+  }
+  .commentMeta{
+    color:var(--sub);
+    font-size:14px;
+    font-weight:600;
+    margin-left:4px;
+  }
+  .commentList{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 12px;
+    overflow:hidden;
+  }
+  .commentItem{
+    min-height:44px;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.055);
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:18px;
+    font-weight:700;
+    line-height:1.35;
+    letter-spacing:-.02em;
+    color:rgba(255,255,255,.92);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  .emptyMsg{
+    color:var(--sub);
+    font-size:16px;
+    font-weight:600;
+    padding:4px 0;
+  }
+  .warnMsg{
+    color:#FFD6D0;
+    font-size:15px;
+    font-weight:700;
+    padding:8px 0;
+  }
+
+  @media (min-width:1500px){
+    .screen{grid-template-rows:42px 138px 278px minmax(124px,1fr);}
+    .voteArea{gap:26px;}
+    .barTrack{height:64px;}
+    .voteLabel{font-size:23px;}
+    .voteValue{font-size:23px;}
+    .questionText{font-size:clamp(34px,2.15vw,46px);}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div id="setup"></div>
-  <div class="top"><span class="live">● LIVE</span><span class="pno" id="pno"></span></div>
-
-  <div id="waitArea" style="display:none">
-    <div class="waitRow">
-      <div class="qbox wait" style="flex:1"><p id="qWait">곧 첫 번째 의견이 공개됩니다…</p></div>
-      <div class="qrBig">
-        <div id="qrBigBox"></div>
-        <div class="cap">참여 QR 스캔 → 신호등 응답</div>
-      </div>
+  <main class="screen">
+    <div class="topbar">
+      <span class="liveBadge"><span class="liveDot"></span> LIVE</span>
+      <span id="statusText">의견 불러오는 중 · 자동 갱신 중</span>
     </div>
-  </div>
 
-  <div id="liveArea" style="display:none">
-    <div class="qbox" id="qbox"><p id="q"></p></div>
-    <div class="bars" id="bars"></div>
-  </div>
+    <div id="setup"></div>
 
-  <div class="opwrap">
-    <h2>🔒 실시간 익명 의견 <span id="opcount" style="color:#fff;font-size:15px;"></span></h2>
-    <div class="cards" id="cards"><span class="empty">아직 추가 의견이 없습니다.</span></div>
-  </div>
-</div>
+    <aside class="qrBox" aria-label="참여 QR">
+      <div id="voteQr"></div>
+      <div class="qrLabel">참여 QR</div>
+    </aside>
 
-<div class="qrCorner" id="qrCorner">
-  <div id="qrCornerBox"></div>
-  <div class="cap">참여 QR</div>
-</div>
+    <section class="questionCard">
+      <div id="questionText" class="questionText empty">아직 공개된 의견이 없습니다.</div>
+    </section>
 
-<script src="config.js?v=20260622-gas-delay-2"></script>
-<script src="app.js?v=20260622-gas-delay-2"></script>
-<script src="qrlib.js?v=20260622-gas-delay-2"></script>
+    <section class="voteArea" aria-label="신호등 응답 현황">
+      <div class="voteRow">
+        <div class="voteLabel"><span class="dot green"></span>완전 공감</div>
+        <div class="barTrack"><div id="barGreen" class="barFill green"></div></div>
+        <div id="valGreen" class="voteValue">0표 · 0%</div>
+      </div>
+      <div class="voteRow">
+        <div class="voteLabel"><span class="dot amber"></span>조금 그렇다</div>
+        <div class="barTrack"><div id="barAmber" class="barFill amber"></div></div>
+        <div id="valAmber" class="voteValue">0표 · 0%</div>
+      </div>
+      <div class="voteRow">
+        <div class="voteLabel"><span class="dot red"></span>다르게 느낀다</div>
+        <div class="barTrack"><div id="barRed" class="barFill red"></div></div>
+        <div id="valRed" class="voteValue">0표 · 0%</div>
+      </div>
+    </section>
+
+    <section class="comments" aria-label="실시간 익명 의견">
+      <div class="commentTitle">🔒 실시간 익명 의견 <span id="commentMeta" class="commentMeta"></span></div>
+      <div id="commentList" class="commentList"><div class="emptyMsg">아직 추가 의견이 없습니다.</div></div>
+    </section>
+  </main>
+
+<script src="config.js?v=20260622-display-bigger-current-comments-1"></script>
+<script src="app.js?v=20260622-display-bigger-current-comments-1"></script>
+<script src="qrlib.js?v=20260622-display-bigger-current-comments-1"></script>
 <script>
-  var qrDrawn = false;
+(function(){
+  var refreshTimer = null;
   var refreshInFlight = false;
+  var lastItemId = '';
+  var commentsAction = 'getLiveComments';
+  var tallyAction = 'getTallies';
 
-  function drawQrOnce(){
-    if (qrDrawn) return;
-    qrDrawn = true;
-    var voteUrl = SafeTalk.makePageUrl('index.html');
-    renderQrInto(document.getElementById('qrCornerBox'), voteUrl, { cell: 4, quiet: 4, dark:'#1B2A4A' });
-    renderQrInto(document.getElementById('qrBigBox'), voteUrl, { cell: 7, quiet: 4, dark:'#1B2A4A' });
+  var CHOICES = [
+    {name:'green', keys:['green','agree','full','positive','완전 공감','완전공감','1','g']},
+    {name:'amber', keys:['amber','yellow','middle','neutral','maybe','조금 그렇다','조금그렇다','2','y']},
+    {name:'red', keys:['red','different','negative','disagree','다르게 느낀다','다르게느낀다','3','r']}
+  ];
+
+  function esc(v){
+    return String(v == null ? '' : v)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+  function norm(v){ return String(v == null ? '' : v).trim(); }
+  function nnum(v){ var n = Number(v || 0); return isFinite(n) ? n : 0; }
+  function pct(n,total){ return total ? Math.round(n / total * 100) : 0; }
+  function firstArray(r){
+    if (!r) return [];
+    if (Array.isArray(r)) return r;
+    if (Array.isArray(r.data)) return r.data;
+    if (Array.isArray(r.list)) return r.list;
+    if (Array.isArray(r.items)) return r.items;
+    if (Array.isArray(r.comments)) return r.comments;
+    if (r.data && Array.isArray(r.data.list)) return r.data.list;
+    if (r.data && Array.isArray(r.data.items)) return r.data.items;
+    if (r.data && Array.isArray(r.data.comments)) return r.data.comments;
+    return [];
   }
 
-  function refresh(){
-    if (SafeTalk.showSetupIfNeeded('setup')) return;
+  function boot(){
+    if (window.SafeTalk && SafeTalk.showSetupIfNeeded && SafeTalk.showSetupIfNeeded('setup')) return;
+    drawQr();
+    refreshAll();
+    refreshTimer = setInterval(refreshAll, (SafeTalk.cfg.REFRESH_MS_DISPLAY || SafeTalk.cfg.REFRESH_MS || 2200));
+  }
+
+  function drawQr(){
+    try{
+      var voteUrl = SafeTalk.makePageUrl('index.html');
+      if (window.renderQrInto) {
+        renderQrInto(document.getElementById('voteQr'), voteUrl, {cell:3, quiet:3, dark:'#1B2A4A'});
+      }
+    }catch(e){}
+  }
+
+  function api(action, params){
+    return SafeTalk.api(action, params || {});
+  }
+
+  function refreshAll(){
     if (refreshInFlight) return;
     refreshInFlight = true;
-    drawQrOnce();
-    SafeTalk.api('getDisplayState').then(function(s){
-      refreshInFlight = false;
-      var waitArea = document.getElementById('waitArea');
-      var liveArea = document.getElementById('liveArea');
-
-      if (!s.itemId){
-        document.getElementById('pno').textContent = '실시간 대기 중 · 자동 갱신 중';
-        waitArea.style.display = 'block';
-        liveArea.style.display = 'none';
-        document.getElementById('qrCorner').style.display = 'none';
-      } else {
-        waitArea.style.display = 'none';
-        liveArea.style.display = 'block';
-        document.getElementById('qrCorner').style.display = 'block';
-        document.getElementById('pno').textContent =
-          '의견 '+s.index+' / '+s.total + (s.votingOpen ? '  ·  응답 중' : '  ·  응답 종료') + '  ·  자동 갱신 중';
-        document.getElementById('q').textContent = s.text;
-
-        var t = s.tally || { green:0, yellow:0, red:0 };
-        t.green = Number(t.green || 0); t.yellow = Number(t.yellow || 0); t.red = Number(t.red || 0);
-        var total = (t.green+t.yellow+t.red) || 1;
-        function pct(n){ return Math.round(n/total*100); }
-        document.getElementById('bars').innerHTML =
-          bar('🟢 완전 공감','fg',t.green,pct(t.green)) +
-          bar('🟡 조금 그렇다','fa',t.yellow,pct(t.yellow)) +
-          bar('🔴 다르게 느낀다','fr',t.red,pct(t.red));
-      }
-
-      var ops = s.liveOpinions || [];
-      document.getElementById('opcount').textContent = ops.length ? ('('+ops.length+')') : '';
-      if (!ops.length){
-        document.getElementById('cards').innerHTML = '<span class="empty">아직 추가 의견이 없습니다.</span>';
-      } else {
-        document.getElementById('cards').innerHTML = ops.map(function(o){
-          var light = (o.category === 'light');
-          return '<div class="card'+(light?' light':'')+'">'+SafeTalk.esc(o.text)+
-                 '<span class="tag">'+(light?'가볍게':'진지')+'</span></div>';
-        }).join('');
-      }
+    api('getRevealState').then(function(state){
+      state = state || {};
+      renderState(state);
+      return Promise.all([
+        loadTallies(state).catch(function(){ renderTallies({green:0, amber:0, red:0}); }),
+        loadComments(state).catch(function(){ renderComments([], state, true); })
+      ]);
     }).catch(function(err){
-      refreshInFlight = false;
-      document.getElementById('pno').textContent = SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : err.message;
+      document.getElementById('statusText').textContent = (SafeTalk.normalizeError ? SafeTalk.normalizeError(err) : err.message || err);
+    }).finally(function(){ refreshInFlight = false; });
+  }
+
+  function renderState(s){
+    var id = norm(s.itemId || s.id || s.currentId || '');
+    if (id !== lastItemId) {
+      lastItemId = id;
+      renderComments([], s, false);
+      renderTallies({green:0, amber:0, red:0});
+    }
+    var qt = document.getElementById('questionText');
+    var text = norm(s.text || s.question || s.title || '');
+    if (id && text) {
+      qt.classList.remove('empty');
+      qt.textContent = text;
+    } else {
+      qt.classList.add('empty');
+      qt.textContent = '아직 공개된 의견이 없습니다.';
+    }
+    var idx = s.index || s.currentIndex || 0;
+    var total = s.total || 0;
+    var openText = s.votingOpen ? '응답 중' : '응답 닫힘';
+    document.getElementById('statusText').textContent = id ? ('의견 ' + idx + ' / ' + total + ' · ' + openText + ' · 자동 갱신 중') : '대기 중 · 자동 갱신 중';
+  }
+
+  function normalizeTallies(r){
+    var src = r && (r.data || r.tallies || r.results || r.counts || r) || {};
+    var out = {green:0, amber:0, red:0};
+    var arr = Array.isArray(src) ? src : (Array.isArray(src.list) ? src.list : null);
+    if (arr) {
+      arr.forEach(function(row){
+        var key = norm(row.choice || row.key || row.name || row.option || row.answer || row.type).toLowerCase();
+        var count = nnum(row.count || row.cnt || row.value || row.votes || row.total);
+        CHOICES.forEach(function(c){
+          if (c.keys.some(function(k){ return key === String(k).toLowerCase(); })) out[c.name] += count;
+        });
+      });
+      return out;
+    }
+    CHOICES.forEach(function(c){
+      c.keys.forEach(function(k){
+        if (src[k] != null) out[c.name] = Math.max(out[c.name], nnum(src[k]));
+      });
+    });
+    return out;
+  }
+
+  function loadTallies(state){
+    if (!state || !state.itemId) {
+      renderTallies({green:0, amber:0, red:0});
+      return Promise.resolve();
+    }
+    return api(tallyAction, {itemId: state.itemId}).then(function(r){
+      if (r && r.ok === false && r.error) throw new Error(r.error);
+      renderTallies(normalizeTallies(r));
     });
   }
 
-  function bar(label,cls,n,p){
-    return '<div class="bar"><div class="blabel">'+label+'</div>'+ 
-           '<div class="track"><div class="fill '+cls+'" style="width:'+p+'%"></div></div>'+ 
-           '<div class="cnt">'+n+'표 · '+p+'%</div></div>';
+  function renderTallies(t){
+    var total = nnum(t.green) + nnum(t.amber) + nnum(t.red);
+    setBar('Green', nnum(t.green), total);
+    setBar('Amber', nnum(t.amber), total);
+    setBar('Red', nnum(t.red), total);
+  }
+  function setBar(name, count, total){
+    var p = pct(count,total);
+    document.getElementById('bar' + name).style.width = p + '%';
+    document.getElementById('val' + name).textContent = count + '표 · ' + p + '%';
   }
 
-  refresh();
-  setInterval(refresh, (SafeTalk.cfg.REFRESH_MS_DISPLAY || 1500));
+  function getItemField(row){
+    var keys = ['itemId','item_id','revealId','reveal_id','curatedId','curated_id','questionId','question_id','targetId','target_id'];
+    for (var i=0;i<keys.length;i++) if (row && row[keys[i]] != null && String(row[keys[i]]).trim() !== '') return String(row[keys[i]]).trim();
+    return '';
+  }
+  function getCommentText(row){
+    if (typeof row === 'string') return row;
+    return norm(row && (row.text || row.comment || row.opinion || row.message || row.content || row.body || row.answer));
+  }
+  function getCommentTime(row){
+    if (!row || typeof row === 'string') return '';
+    return norm(row.createdAt || row.created_at || row.timestamp || row.time || row.date || row.submittedAt || row.submitted_at);
+  }
+
+  function loadComments(state){
+    if (!state || !state.itemId) {
+      renderComments([], state, false);
+      return Promise.resolve();
+    }
+    return api(commentsAction, {itemId: state.itemId, limit: 12}).then(function(r){
+      if (r && r.ok === false && r.error) throw new Error(r.error);
+      var list = firstArray(r);
+      var hasItemTag = list.some(function(row){ return !!getItemField(row); });
+      var filtered = hasItemTag ? list.filter(function(row){ return getItemField(row) === String(state.itemId); }) : list;
+      renderComments(filtered, state, false, hasItemTag);
+    });
+  }
+
+  function renderComments(list, state, error, hasItemTag){
+    var el = document.getElementById('commentList');
+    var meta = document.getElementById('commentMeta');
+    var id = state && state.itemId;
+    var clean = (list || []).map(function(row){
+      return {text:getCommentText(row), time:getCommentTime(row)};
+    }).filter(function(row){ return !!row.text; }).slice(-8).reverse();
+
+    meta.textContent = id ? ('· 현재 의견별 취합 ' + clean.length + '건') : '';
+
+    if (error) {
+      el.className = 'commentList';
+      el.innerHTML = '<div class="warnMsg">의견을 불러오는 중 지연이 있습니다. 잠시 후 자동 재시도합니다.</div>';
+      return;
+    }
+    if (!id) {
+      el.className = 'commentList';
+      el.innerHTML = '<div class="emptyMsg">공개된 의견이 생기면 해당 의견의 추가 의견만 표시됩니다.</div>';
+      return;
+    }
+    if (!clean.length) {
+      el.className = 'commentList';
+      el.innerHTML = '<div class="emptyMsg">아직 이 의견에 대한 추가 의견이 없습니다.</div>';
+      return;
+    }
+    el.className = 'commentList';
+    el.innerHTML = clean.map(function(row){
+      var title = row.time ? esc(row.time) + ' · ' + esc(row.text) : esc(row.text);
+      return '<div class="commentItem" title="' + title + '">' + esc(row.text) + '</div>';
+    }).join('');
+  }
+
+  window.addEventListener('beforeunload', function(){ if (refreshTimer) clearInterval(refreshTimer); });
+  boot();
+})();
 </script>
 </body>
 </html>
