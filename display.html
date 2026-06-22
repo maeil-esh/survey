@@ -2,8 +2,12 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>안전 토크 라이브 · Display</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
 <style>
   :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--amber:#FFC857;--red:#E84855;--muted:#8A93A6;}
   *{box-sizing:border-box;}
@@ -36,6 +40,34 @@
   .qrBig .cap{color:var(--navy);font-size:16px;font-weight:bold;}
   .waitRow{display:flex;align-items:center;gap:34px;}
   #setup{color:#1B2A4A;max-width:780px;}
+
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  .qbox p,.card,.empty{overflow-wrap:anywhere;}
+  @media (max-width: 768px){
+    .wrap{padding:20px 14px 36px;}
+    .top{gap:10px;flex-wrap:wrap;}
+    .live{font-size:13px;padding:5px 12px;}
+    .pno{font-size:14px;}
+    .waitRow{flex-direction:column;align-items:stretch;gap:16px;}
+    .qbox{padding:18px 16px;margin:12px 0 20px;}
+    .qbox p{font-size:22px;line-height:1.42;}
+    .qbox.wait{font-size:16px;}
+    .qrBig{padding:18px 16px;}
+    .qrBig svg{width:180px;height:180px;}
+    .qrCorner{top:auto;right:12px;bottom:12px;padding:10px;}
+    .qrCorner svg{width:86px;height:86px;}
+    .bar{display:grid;grid-template-columns:1fr auto;gap:8px 10px;background:rgba(255,255,255,.03);border-radius:14px;padding:10px;}
+    .blabel{width:auto;font-size:15px;}
+    .cnt{width:auto;font-size:15px;}
+    .track{grid-column:1 / -1;height:34px;}
+    .opwrap h2{font-size:17px;}
+    .cards{display:block;}
+    .card{max-width:none;width:100%;margin-bottom:10px;font-size:14px;}
+  }
+  @media (max-width: 420px){
+    .qbox p{font-size:19px;}
+    .qrBig svg{width:150px;height:150px;}
+  }
 </style>
 </head>
 <body>
@@ -69,9 +101,9 @@
   <div class="cap">참여 QR</div>
 </div>
 
-<script src="config.js"></script>
-<script src="app.js"></script>
-<script src="qrlib.js"></script>
+<script src="config.js?v=20260622-mobile-cache-1"></script>
+<script src="app.js?v=20260622-mobile-cache-1"></script>
+<script src="qrlib.js?v=20260622-mobile-cache-1"></script>
 <script>
   var qrDrawn = false;
 

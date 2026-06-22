@@ -2,8 +2,12 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>CSO와 터놓고 말해요 · 사전 의견</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
 
 <style>
   :root {
@@ -264,6 +268,21 @@
       font-size: 17px;
     }
   }
+
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  button,textarea,input,label{touch-action:manipulation;}
+  button{min-height:44px;-webkit-appearance:none;appearance:none;}
+  textarea,input,select{font-size:16px;}
+  h1,.desc,.safeBox p,.label{overflow-wrap:anywhere;}
+  @media (max-width: 380px) {
+    .wrap{padding:20px 12px 40px;}
+    h1{font-size:22px;}
+    .desc{font-size:14px;line-height:1.55;}
+    .safeBox{padding:15px 14px;gap:9px;}
+    .cat{gap:6px;}
+    .cat label{font-size:13px;padding:11px 6px;min-width:0;}
+    .toast{width:calc(100vw - 32px);max-width:360px;text-align:center;bottom:calc(18px + env(safe-area-inset-bottom));}
+  }
 </style>
 </head>
 
@@ -273,6 +292,8 @@
     <div class="badge">
       사전 의견 수렴 · <span id="countdown">D-00 00:00:00</span>
     </div>
+
+    <div id="setup"></div>
 
     <h1>워크숍 전, 미리 들려주세요</h1>
 
@@ -341,6 +362,8 @@
 
   <div id="toast" class="toast"></div>
 
+<script src="config.js?v=20260622-mobile-cache-1"></script>
+<script src="app.js?v=20260622-mobile-cache-1"></script>
 <script>
   var cat = 'serious';
 
@@ -398,10 +421,12 @@
   }
 
   function pad(number) {
-    return String(number).padStart(2, '0');
+    return number < 10 ? '0' + number : String(number);
   }
 
   function send() {
+    if (window.SafeTalk && SafeTalk.showSetupIfNeeded('setup')) return;
+
     var textArea = document.getElementById('opText');
     var text = textArea.value;
     var btn = document.getElementById('sendBtn');
@@ -414,34 +439,25 @@
     btn.disabled = true;
     btn.textContent = '보내는 중…';
 
-    /*
-      실제 운영 환경에서 SafeTalk.api를 사용하는 경우,
-      아래 주석 처리된 코드로 교체해서 사용하시면 됩니다.
-
-      SafeTalk.api('submitOpinion', {
-        text: text,
-        category: cat,
-        source: 'presurvey'
-      }).then(function (result) {
-        btn.disabled = false;
-        btn.textContent = '익명으로 제출하기';
-
-        if (result && result.ok) {
-          document.getElementById('form').style.display = 'none';
-          document.getElementById('doneWrap').classList.add('show');
-        } else {
-          showToast('전송에 실패했습니다. 다시 시도해 주세요');
-        }
-      });
-    */
-
-    setTimeout(function () {
+    SafeTalk.api('submitOpinion', {
+      text: text,
+      category: cat,
+      source: 'presurvey'
+    }).then(function (result) {
       btn.disabled = false;
       btn.textContent = '익명으로 제출하기';
 
-      document.getElementById('form').style.display = 'none';
-      document.getElementById('doneWrap').classList.add('show');
-    }, 600);
+      if (result && result.ok) {
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('doneWrap').classList.add('show');
+      } else {
+        showToast('전송에 실패했습니다. 다시 시도해 주세요');
+      }
+    }).catch(function () {
+      btn.disabled = false;
+      btn.textContent = '익명으로 제출하기';
+      showToast('전송에 실패했습니다. 다시 시도해 주세요');
+    });
   }
 
   function again() {
@@ -450,6 +466,7 @@
     document.getElementById('form').style.display = 'block';
   }
 
+  if (window.SafeTalk) SafeTalk.showSetupIfNeeded('setup');
   updateCountdown();
   setInterval(updateCountdown, 1000);
 </script>

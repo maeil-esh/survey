@@ -2,8 +2,12 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>안전 토크 라이브 · Admin</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
 <style>
   :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--red:#E84855;--amber:#FFC857;--muted:#6B7689;--bg:#F4F6FA;}
   *{box-sizing:border-box;}
@@ -56,6 +60,34 @@
   .toplinks a{flex:1;text-align:center;background:#fff;color:var(--navy);border:1px solid #E2E8F0;border-radius:10px;padding:9px;font-size:12px;font-weight:bold;text-decoration:none;}
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50;white-space:nowrap;}
   .toast.on{opacity:1;}
+
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  button,input,textarea,a{touch-action:manipulation;}
+  button{min-height:44px;-webkit-appearance:none;appearance:none;}
+  input,textarea,select{font-size:16px;}
+  .curText,.sub,.state,.inboxItem,.url{overflow-wrap:anywhere;}
+  @media (max-width: 520px){
+    .wrap{padding:18px 12px 42px;}
+    h1{font-size:20px;}
+    .toplinks{gap:6px;}
+    .toplinks a{font-size:11.5px;padding:10px 6px;}
+    .navrow,.row2,.resetRow{gap:8px;}
+    .navrow button,.row2 button,.resetRow button{font-size:13px;padding:12px 8px;}
+    .tabs{gap:6px;}
+    .tab{font-size:13px;padding:10px 6px;}
+    .curItem{align-items:flex-start;flex-wrap:wrap;}
+    .curText{flex:1 1 calc(100% - 48px);}
+    .curBtns{flex:0 0 34px;}
+    .revealBtn{flex:1 1 100%;width:100%;margin-top:6px;}
+    .toast{width:calc(100vw - 32px);max-width:360px;white-space:normal;text-align:center;bottom:calc(18px + env(safe-area-inset-bottom));}
+  }
+  @media (max-width: 380px){
+    .qrShare{flex-direction:column;}
+    .qrCard svg{width:110px;height:110px;}
+    .actRow{flex-direction:column;}
+    .toplinks{flex-direction:column;}
+    .navrow{flex-direction:column;}
+  }
 </style>
 </head>
 <body>
@@ -127,9 +159,9 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="config.js"></script>
-<script src="app.js"></script>
-<script src="qrlib.js"></script>
+<script src="config.js?v=20260622-mobile-cache-1"></script>
+<script src="app.js?v=20260622-mobile-cache-1"></script>
+<script src="qrlib.js?v=20260622-mobile-cache-1"></script>
 <script>
   var qrDrawn = false;
   var refreshTimer = null;

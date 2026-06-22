@@ -2,8 +2,12 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>안전 토크 라이브 · VOTE</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>window.SAFE_TALK_BUILD_VERSION = '20260622-mobile-cache-1';</script>
 <style>
   :root{--navy:#1B2A4A;--coral:#FF6B5B;--green:#2EB872;--amber:#FFC857;--red:#E84855;--bg:#F4F6FA;--muted:#6B7689;}
   *{box-sizing:border-box;}
@@ -37,6 +41,22 @@
   .anon{text-align:center;color:var(--muted);font-size:12px;margin-top:18px;}
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50;white-space:nowrap;}
   .toast.on{opacity:1;}
+
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  button,textarea,input,label{touch-action:manipulation;}
+  button{min-height:44px;-webkit-appearance:none;appearance:none;}
+  textarea,input,select{font-size:16px;}
+  .qcard p,.op p,.anon,.liveMeta{overflow-wrap:anywhere;}
+  @media (max-width: 380px){
+    .wrap{padding:16px 12px 40px;}
+    .qcard{padding:16px;margin-bottom:14px;}
+    .qcard p{font-size:17px;line-height:1.5;}
+    .vbtn{padding:17px 16px;font-size:16px;border-radius:14px;}
+    .dot{width:21px;height:21px;}
+    .cat{gap:6px;}
+    .cat label{font-size:13px;padding:10px 6px;min-width:0;}
+    .toast{width:calc(100vw - 32px);max-width:360px;white-space:normal;text-align:center;bottom:calc(18px + env(safe-area-inset-bottom));}
+  }
 </style>
 </head>
 <body>
@@ -71,8 +91,8 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="config.js"></script>
-<script src="app.js"></script>
+<script src="config.js?v=20260622-mobile-cache-1"></script>
+<script src="app.js?v=20260622-mobile-cache-1"></script>
 <script>
   var curId = null;
   var lastServerTime = 0;
@@ -141,13 +161,13 @@
       clientId: SafeTalk.getClientId()
     }).then(function(r){
       if (!r || !r.ok) {
-        localStorage.removeItem(SafeTalk.votedKey(curId));
+        SafeTalk.clearVoted(curId);
         SafeTalk.toast('응답 실패: 다시 눌러 주세요');
       }
       isSendingVote = false;
       refresh();
     }).catch(function(){
-      localStorage.removeItem(SafeTalk.votedKey(curId));
+      SafeTalk.clearVoted(curId);
       isSendingVote = false;
       SafeTalk.toast('네트워크 오류: 다시 눌러 주세요');
       refresh();
