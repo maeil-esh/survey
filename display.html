@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-stable-current-comments-2';</script>
+<script>window.SAFE_TALK_BUILD_VERSION='20260622-display-3line-qr-big-1';</script>
 <style>
   :root{
     --navy:#1B2A4A;
@@ -37,7 +37,7 @@
     min-height:620px;
     padding:14px 24px 20px;
     display:grid;
-    grid-template-rows:42px 138px 258px minmax(120px,1fr);
+    grid-template-rows:42px 188px 258px minmax(120px,1fr);
     gap:10px;
     position:relative;
   }
@@ -72,25 +72,25 @@
     position:absolute;
     top:14px;
     right:0;
-    width:134px;
-    height:154px;
-    border-radius:14px 0 0 14px;
+    width:176px;
+    height:196px;
+    border-radius:18px 0 0 18px;
     background:#fff;
     color:var(--navy);
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:7px;
+    gap:9px;
     z-index:4;
     box-shadow:0 10px 26px rgba(0,0,0,.18);
   }
-  .qrBox svg{width:90px;height:90px;display:block;}
-  .qrLabel{font-size:12px;font-weight:900;color:var(--navy);}
+  .qrBox svg{width:126px;height:126px;display:block;}
+  .qrLabel{font-size:14px;font-weight:900;color:var(--navy);}
 
   .questionCard{
-    width:calc(100vw - 188px);
-    min-width:900px;
+    width:calc(100vw - 236px);
+    min-width:820px;
     max-width:none;
     border:1px solid var(--line);
     border-radius:18px;
@@ -101,14 +101,14 @@
     overflow:hidden;
   }
   .questionText{
-    font-size:clamp(31px,2.05vw,43px);
+    font-size:clamp(30px,1.95vw,41px);
     line-height:1.22;
     font-weight:900;
     letter-spacing:-.04em;
     word-break:keep-all;
     overflow-wrap:anywhere;
     display:-webkit-box;
-    -webkit-line-clamp:2;
+    -webkit-line-clamp:3;
     -webkit-box-orient:vertical;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -116,7 +116,7 @@
   }
   .questionText.empty{
     color:rgba(255,255,255,.56);
-    font-size:30px;
+    font-size:32px;
     font-weight:800;
   }
 
@@ -238,12 +238,12 @@
   }
 
   @media (min-width:1500px){
-    .screen{grid-template-rows:42px 138px 278px minmax(124px,1fr);}
+    .screen{grid-template-rows:42px 196px 278px minmax(124px,1fr);}
     .voteArea{gap:26px;}
     .barTrack{height:64px;}
     .voteLabel{font-size:23px;}
     .voteValue{font-size:23px;}
-    .questionText{font-size:clamp(34px,2.15vw,46px);}
+    .questionText{font-size:clamp(32px,2.05vw,44px);}
   }
 </style>
 </head>
@@ -289,9 +289,9 @@
     </section>
   </main>
 
-<script src="config.js?v=20260622-display-stable-current-comments-2"></script>
-<script src="app.js?v=20260622-display-stable-current-comments-2"></script>
-<script src="qrlib.js?v=20260622-display-stable-current-comments-2"></script>
+<script src="config.js?v=20260622-display-3line-qr-big-1"></script>
+<script src="app.js?v=20260622-display-3line-qr-big-1"></script>
+<script src="qrlib.js?v=20260622-display-3line-qr-big-1"></script>
 <script>
 (function(){
   var refreshTimer = null;
@@ -354,7 +354,7 @@
     try{
       var voteUrl = SafeTalk.makePageUrl('index.html');
       if (window.renderQrInto) {
-        renderQrInto(document.getElementById('voteQr'), voteUrl, {cell:3, quiet:3, dark:'#1B2A4A'});
+        renderQrInto(document.getElementById('voteQr'), voteUrl, {cell:4, quiet:4, dark:'#1B2A4A'});
       }
     }catch(e){}
   }
