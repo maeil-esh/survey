@@ -182,11 +182,20 @@
   function sendOp(){
     var t = document.getElementById('opText').value;
     if (!t.trim()){ SafeTalk.toast('내용을 적어 주세요'); return; }
+    if (!curId){ SafeTalk.toast('공개된 의견이 있을 때 남겨 주세요'); return; }
     var cat = document.querySelector('#cat label.sel').getAttribute('data-v');
     var btn = document.getElementById('sendBtn');
+    var requestId = 'live_' + curId + '_' + SafeTalk.getClientId() + '_' + Date.now();
     btn.disabled = true;
     btn.textContent = '보내는 중…';
-    SafeTalk.api('submitOpinion', { text: t, category: cat, source: 'live' }).then(function(r){
+    SafeTalk.api('submitOpinion', {
+      text: t,
+      category: cat,
+      source: 'live',
+      itemId: curId,
+      clientId: SafeTalk.getClientId(),
+      requestId: requestId
+    }).then(function(r){
       btn.disabled = false;
       btn.textContent = '익명으로 보내기';
       if (r && r.ok){
