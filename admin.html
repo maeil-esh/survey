@@ -143,7 +143,6 @@
 
     <div class="resetRow">
       <button onclick="doResetTallies()">투표 집계만 초기화</button>
-      <button onclick="doResetAll()">전체 데이터 초기화</button>
     </div>
   </div>
 </div>
@@ -309,11 +308,6 @@
   function doResetTallies(){
     if (confirm('현재까지의 투표 집계만 초기화합니다. 계속할까요?')){
       SafeTalk.adminApi('resetTallies').then(refreshAll);
-    }
-  }
-  function doResetAll(){
-    if (confirm('⚠ 사전 의견 · 공개 순서 · 집계를 모두 삭제합니다. 되돌릴 수 없습니다. 계속할까요?')){
-      SafeTalk.adminApi('resetAll').then(refreshAll);
     }
   }
 
