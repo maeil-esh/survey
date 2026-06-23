@@ -331,7 +331,7 @@
       <span class="liveBadge"><span class="liveDot"></span> LIVE</span>
       <span id="statusText">의견 불러오는 중 · 자동 갱신 중</span>
       <div class="hostControls" aria-label="사회자 컨트롤">
-        <button type="button" id="countdownBtn" class="hostBtn primary" onclick="window.displayStartCountdown && window.displayStartCountdown()">🔊⏱ 10초 카운트</button>
+        <button type="button" id="countdownBtn" class="hostBtn primary" onclick="window.displayStartCountdown && window.displayStartCountdown()">🔊⏱ 20초 카운트</button>
       </div>
     </div>
 
@@ -373,7 +373,7 @@
   <div id="countdownOverlay" class="countdownOverlay" onclick="window.displayCancelCountdown && window.displayCancelCountdown()" aria-live="assertive">
     <div class="countdownCard" onclick="event.stopPropagation()">
       <div class="countdownLabel">응답 마감까지</div>
-      <div id="countdownNumber" class="countdownNumber">10</div>
+      <div id="countdownNumber" class="countdownNumber">20</div>
       <div class="countdownHint">화면 클릭 시 카운트 종료 · 시작 시 소리 활성화</div>
     </div>
   </div>
@@ -395,7 +395,7 @@
   var lastTallyTotalByItem = {};
   var lastCommentCountByItem = {};
   var countdownTimer = null;
-  var countdownRemain = 10;
+  var countdownRemain = 20;
 
   /* GAS 응답 지연 방지용
      - 상태/집계는 빠르게 갱신
@@ -451,7 +451,7 @@
     var btn = document.getElementById('countdownBtn');
     if (!btn) return;
     btn.classList.toggle('on', !!soundEnabled);
-    btn.textContent = soundEnabled ? '🔊 켜짐 · ⏱ 10초 카운트' : '🔊⏱ 10초 카운트';
+    btn.textContent = soundEnabled ? '🔊 켜짐 · ⏱ 20초 카운트' : '🔊⏱ 20초 카운트';
   }
 
   function enableSound(){
@@ -508,7 +508,7 @@
   function startCountdown(){
     enableSound();
     if (countdownTimer) clearInterval(countdownTimer);
-    countdownRemain = 10;
+    countdownRemain = 20;
     var overlay = document.getElementById('countdownOverlay');
     var num = document.getElementById('countdownNumber');
     if (!overlay || !num) return;
@@ -526,7 +526,7 @@
         setTimeout(function(){ overlay.classList.remove('on'); num.classList.remove('done'); }, 900);
       } else {
         num.textContent = countdownRemain;
-        if (countdownRemain <= 3) {
+        if (countdownRemain <= 7) {
           playPop(true);
         }
       }
