@@ -96,8 +96,8 @@
     position:absolute;
     top:14px;
     right:0;
-    width:176px;
-    height:196px;
+    width:130px;
+    height:148px;
     border-radius:18px 0 0 18px;
     background:#fff;
     color:var(--navy);
@@ -105,15 +105,15 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:9px;
+    gap:6px;
     z-index:4;
     box-shadow:0 10px 26px rgba(0,0,0,.18);
   }
-  .qrBox svg{width:170px;height:170px;display:block;}
-  .qrLabel{font-size:14px;font-weight:900;color:var(--navy);}
+  .qrBox svg{width:120px;height:120px;display:block;}
+  .qrLabel{font-size:12px;font-weight:900;color:var(--navy);}
 
   .questionCard{
-    width:calc(100vw - 236px);
+    width:calc(100vw - 180px);
     min-width:820px;
     max-width:none;
     border:1px solid var(--line);
@@ -153,7 +153,7 @@
   }
   .voteRow{
     display:grid;
-    grid-template-columns:184px minmax(400px,1fr) 132px;
+    grid-template-columns:240px minmax(300px,1fr) 132px;
     align-items:center;
     gap:24px;
     min-height:60px;
@@ -320,6 +320,7 @@
     .barTrack{height:64px;}
     .voteLabel{font-size:23px;}
     .voteValue{font-size:23px;}
+    .voteRow{grid-template-columns:270px minmax(300px,1fr) 150px;}
     .questionText{font-size:clamp(32px,2.05vw,44px);}
   }
 </style>
